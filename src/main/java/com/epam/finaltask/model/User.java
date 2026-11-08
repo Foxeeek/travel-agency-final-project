@@ -1,92 +1,102 @@
 package com.epam.finaltask.model;
 
+import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-import jakarta.persistence.Entity;
-
 @Entity
+@Table(name = "users")
 public class User {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(nullable = false, unique = true)
     private String username;
 
+    @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
 
+    @OneToMany(mappedBy = "user")
     private List<Voucher> vouchers;
 
+    @Column(unique = true)
     private String phoneNumber;
 
+    @Column(nullable = false)
     private BigDecimal balance;
 
+    @Column(name = "account_status", nullable = false)
     private boolean active;
 
-	public UUID getId() {
-		return id;
-	}
 
-	public void setId(UUID id) {
-		this.id = id;
-	}
+    public UUID getId() {
+        return id;
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public String getUsername() {
+        return username;
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public Role getRole() {
-		return role;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public void setRole(Role role) {
-		this.role = role;
-	}
+    public Role getRole() {
+        return role;
+    }
 
-	public List<Voucher> getVouchers() {
-		return vouchers;
-	}
+    public void setRole(Role role) {
+        this.role = role;
+    }
 
-	public void setVouchers(List<Voucher> vouchers) {
-		this.vouchers = vouchers;
-	}
+    public List<Voucher> getVouchers() {
+        return vouchers;
+    }
 
-	public String getPhoneNumber() {
-		return phoneNumber;
-	}
+    public void setVouchers(List<Voucher> vouchers) {
+        this.vouchers = vouchers;
+    }
 
-	public void setPhoneNumber(String phoneNumber) {
-		this.phoneNumber = phoneNumber;
-	}
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
 
-	public BigDecimal getBalance() {
-		return balance;
-	}
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 
-	public void setBalance(BigDecimal balance) {
-		this.balance = balance;
-	}
+    public BigDecimal getBalance() {
+        return balance;
+    }
 
-	public boolean isActive() {
-		return active;
-	}
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
 
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-    
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
 }
