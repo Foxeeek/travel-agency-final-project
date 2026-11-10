@@ -7,19 +7,21 @@ import com.epam.finaltask.dto.UserDTO;
 import com.epam.finaltask.mapper.UserMapper;
 import com.epam.finaltask.model.User;
 import com.epam.finaltask.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService {
 
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public UserServiceImpl(PasswordEncoder passwordEncoder, UserMapper userMapper, UserRepository userRepository) {
+        this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public UserDTO register(UserDTO userDTO) {

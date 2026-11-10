@@ -88,7 +88,7 @@ public class Voucher {
         this.id = id;
     }
 
-    public boolean isHot() {
+    public boolean getIsHot() {
         return isHot;
     }
 
