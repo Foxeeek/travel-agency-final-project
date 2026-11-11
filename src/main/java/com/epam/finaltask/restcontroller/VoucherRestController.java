@@ -3,6 +3,7 @@ package com.epam.finaltask.restcontroller;
 import com.epam.finaltask.dto.ApiResponse;
 import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.service.VoucherService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +32,7 @@ public class VoucherRestController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<VoucherDTO>> createVoucherValidData(@RequestBody VoucherDTO voucherDTO) {
+    public ResponseEntity<ApiResponse<VoucherDTO>> createVoucherValidData(@Valid @RequestBody VoucherDTO voucherDTO) {
         VoucherDTO voucher = voucherService.create(voucherDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("OK", "Voucher is successfully created", voucher));
     }
@@ -44,7 +45,7 @@ public class VoucherRestController {
 
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponse<VoucherDTO>> updateVoucher(@PathVariable String id, @RequestBody VoucherDTO voucherDTO) {
+    public ResponseEntity<ApiResponse<VoucherDTO>> updateVoucher(@PathVariable String id,@Valid @RequestBody VoucherDTO voucherDTO) {
         VoucherDTO voucher = voucherService.update(id, voucherDTO);
         return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher is successfully updated", voucher));
     }

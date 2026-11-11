@@ -4,23 +4,40 @@ import java.util.List;
 
 import com.epam.finaltask.model.Voucher;
 
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 public class UserDTO {
 
 	private String id;
 
+	@Size(min = 5, message = "minimum length is 5 characters")
+	@NotBlank(message = "username is required")
 	private String username;
 
+	@NotBlank(message = "Password cannot be empty")
+	@Size(min = 8, max = 32, message = "Password must be between 8 and 32 characters")
+	@Pattern(
+			regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).+$",
+			message = "Password must contain uppercase, lowercase, number and special character"
+	)
 	private String password;
 
 	private String role;
 
 	private List<Voucher> vouchers;
 
+	@NotBlank(message = "phone number is required")
+	@Pattern(
+			regexp = "^\\+[1-9]\\d{7,14}$",
+			message = "Invalid phone number format. Example: +48123456789"
+	)
 	private String phoneNumber;
 
+	@NotNull
+	@PositiveOrZero(message = "balance must be positive")
 	private Double balance;
+
 
 	private boolean active;
 

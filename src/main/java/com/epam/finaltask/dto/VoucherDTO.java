@@ -1,5 +1,9 @@
 package com.epam.finaltask.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -7,26 +11,36 @@ public class VoucherDTO {
 
     private String id;
 
+	@NotBlank(message = "title is required")
     private String title;
-
+	@NotBlank(message = "description is required")
     private String description;
 
+	@Positive(message = "price must be greater than 0")
+	@NotNull(message = "price can't be null")
     private Double price;
 
+	@NotBlank(message = "tour type is required")
     private String tourType;
 
+	@NotBlank(message = "transfer type is required")
     private String transferType;
 
+	@NotBlank(message = "hotel type is required")
     private String hotelType;
 
+	@NotBlank(message = "status is required")
     private String status;
 
+	@NotNull(message = "arrival date is required")
     private LocalDate arrivalDate;
 
+	@NotNull(message = "eviction date is required")
     private LocalDate evictionDate;
 
     private UUID userId;
 
+	@NotNull(message = "hot status is required")
     private Boolean isHot;
 
 	public String getId() {
@@ -37,6 +51,7 @@ public class VoucherDTO {
 		this.id = id;
 	}
 
+
 	public String getTitle() {
 		return title;
 	}
@@ -44,6 +59,7 @@ public class VoucherDTO {
 	public void setTitle(String title) {
 		this.title = title;
 	}
+
 
 	public String getDescription() {
 		return description;
@@ -53,6 +69,7 @@ public class VoucherDTO {
 		this.description = description;
 	}
 
+
 	public Double getPrice() {
 		return price;
 	}
@@ -60,6 +77,7 @@ public class VoucherDTO {
 	public void setPrice(Double price) {
 		this.price = price;
 	}
+
 
 	public String getTourType() {
 		return tourType;
@@ -69,6 +87,7 @@ public class VoucherDTO {
 		this.tourType = tourType;
 	}
 
+
 	public String getTransferType() {
 		return transferType;
 	}
@@ -76,6 +95,7 @@ public class VoucherDTO {
 	public void setTransferType(String transferType) {
 		this.transferType = transferType;
 	}
+
 
 	public String getHotelType() {
 		return hotelType;
@@ -85,6 +105,7 @@ public class VoucherDTO {
 		this.hotelType = hotelType;
 	}
 
+
 	public String getStatus() {
 		return status;
 	}
@@ -92,6 +113,7 @@ public class VoucherDTO {
 	public void setStatus(String status) {
 		this.status = status;
 	}
+
 
 	public LocalDate getArrivalDate() {
 		return arrivalDate;
@@ -101,6 +123,7 @@ public class VoucherDTO {
 		this.arrivalDate = arrivalDate;
 	}
 
+
 	public LocalDate getEvictionDate() {
 		return evictionDate;
 	}
@@ -109,6 +132,7 @@ public class VoucherDTO {
 		this.evictionDate = evictionDate;
 	}
 
+
 	public UUID getUserId() {
 		return userId;
 	}
@@ -116,6 +140,7 @@ public class VoucherDTO {
 	public void setUserId(UUID userId) {
 		this.userId = userId;
 	}
+
 
 	public Boolean getIsHot() {
 		return isHot;
