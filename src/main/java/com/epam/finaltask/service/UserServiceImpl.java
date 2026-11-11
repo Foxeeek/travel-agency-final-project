@@ -39,6 +39,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO updateUser(String username, UserDTO userDTO) {
         if (userRepository.existsByUsername(username)) {
+
             User user = userRepository.findUserByUsername(username).orElseThrow();
             user.setUsername(userDTO.getUsername());
             user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
@@ -46,6 +47,7 @@ public class UserServiceImpl implements UserService {
             user.setPhoneNumber(userDTO.getPhoneNumber());
             user.setBalance(BigDecimal.valueOf(userDTO.getBalance()));
             user.setActive(userDTO.isActive());
+
             userRepository.save(user);
             return userMapper.toUserDTO(user);
         } else {

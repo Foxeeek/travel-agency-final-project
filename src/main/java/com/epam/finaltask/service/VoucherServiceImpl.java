@@ -1,66 +1,120 @@
 package com.epam.finaltask.service;
 
 import com.epam.finaltask.dto.VoucherDTO;
-import com.epam.finaltask.model.HotelType;
-import com.epam.finaltask.model.TourType;
+import com.epam.finaltask.mapper.VoucherMapper;
+import com.epam.finaltask.model.*;
+import com.epam.finaltask.repository.UserRepository;
+import com.epam.finaltask.repository.VoucherRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @Service
-public class VoucherServiceImpl implements VoucherService{
+public class VoucherServiceImpl implements VoucherService {
+
+    private final VoucherMapper voucherMapper;
+    private final VoucherRepository voucherRepository;
+    private final UserRepository userRepository;
+
+    public VoucherServiceImpl(VoucherMapper voucherMapper, VoucherRepository voucherRepository, UserRepository userRepository) {
+        this.voucherMapper = voucherMapper;
+        this.voucherRepository = voucherRepository;
+        this.userRepository = userRepository;
+    }
+
     @Override
     public VoucherDTO create(VoucherDTO voucherDTO) {
-        return null;
+        Voucher voucher = voucherMapper.toVoucher(voucherDTO);
+        voucherRepository.save(voucher);
+        return voucherMapper.toVoucherDTO(voucher);
     }
 
     @Override
     public VoucherDTO order(String id, String userId) {
-        return null;
+        Voucher voucher = voucherRepository.findById(UUID.fromString(id)).orElseThrow();
+        User user = userRepository.findById(UUID.fromString(userId)).orElseThrow();
+
+        voucher.setUser(user);
+        voucherRepository.save(voucher);
+        return voucherMapper.toVoucherDTO(voucher);
     }
 
     @Override
     public VoucherDTO update(String id, VoucherDTO voucherDTO) {
-        return null;
+
+        Voucher voucher = voucherRepository.findById(UUID.fromString(id)).orElseThrow();
+
+        voucher.setTitle(voucherDTO.getTitle());
+        voucher.setDescription(voucherDTO.getDescription());
+
+        voucher.setPrice(BigDecimal.valueOf(voucherDTO.getPrice()));
+        voucher.setTourType(TourType.valueOf(voucherDTO.getTourType()));
+        voucher.setHotelType(HotelType.valueOf(voucherDTO.getHotelType()));
+        voucher.setStatus(VoucherStatus.valueOf(voucherDTO.getStatus()));
+        voucher.setTransferType(TransferType.valueOf(voucherDTO.getTransferType()));
+        voucher.setArrivalDate(voucherDTO.getArrivalDate());
+        voucher.setEvictionDate(voucherDTO.getEvictionDate());
+
+        voucher.setIsHot(voucherDTO.getIsHot());
+
+        voucherRepository.save(voucher);
+        return voucherMapper.toVoucherDTO(voucher);
+
     }
 
     @Override
     public void delete(String voucherId) {
-
+        Voucher voucher = voucherRepository.findById(UUID.fromString(voucherId)).orElseThrow();
+        voucherRepository.delete(voucher);
     }
 
     @Override
     public VoucherDTO changeHotStatus(String id, VoucherDTO voucherDTO) {
-        return null;
+        Voucher voucher = voucherRepository.findById(UUID.fromString(id)).orElseThrow();
+        Voucher fromDto = voucherMapper.toVoucher(voucherDTO);
+
+        voucher.setIsHot(fromDto.getIsHot());
+        voucherRepository.save(voucher);
+
+        return voucherMapper.toVoucherDTO(voucher);
+
     }
 
     @Override
     public List<VoucherDTO> findAllByUserId(String userId) {
-        return List.of();
+        return voucherRepository.findAllByUserId(UUID.fromString(userId)).stream()
+                .map(voucherMapper::toVoucherDTO).toList();
     }
 
     @Override
     public List<VoucherDTO> findAllByTourType(TourType tourType) {
-        return List.of();
+        return voucherRepository.findAllByTourType(tourType).stream()
+                .map(voucherMapper::toVoucherDTO).toList();
     }
 
     @Override
     public List<VoucherDTO> findAllByTransferType(String transferType) {
-        return List.of();
+        return voucherRepository.findAllByTransferType(TransferType.valueOf(transferType)).stream()
+                .map(voucherMapper::toVoucherDTO).toList();
     }
 
     @Override
     public List<VoucherDTO> findAllByPrice(Double price) {
-        return List.of();
+        return voucherRepository.findAllByPrice(price).stream()
+                .map(voucherMapper::toVoucherDTO).toList();
     }
 
     @Override
     public List<VoucherDTO> findAllByHotelType(HotelType hotelType) {
-        return List.of();
+        return voucherRepository.findAllByHotelType(hotelType).stream()
+                .map(voucherMapper::toVoucherDTO).toList();
     }
 
     @Override
     public List<VoucherDTO> findAll() {
-        return List.of();
+        return voucherRepository.findAll().stream()
+                .map(voucherMapper::toVoucherDTO).toList();
     }
 }
