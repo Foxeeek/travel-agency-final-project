@@ -1,6 +1,7 @@
 package com.epam.finaltask.service;
 
 import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
 import com.epam.finaltask.repository.UserRepository;
@@ -33,8 +34,10 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public VoucherDTO order(String id, String userId) {
-        Voucher voucher = voucherRepository.findById(UUID.fromString(id)).orElseThrow();
-        User user = userRepository.findById(UUID.fromString(userId)).orElseThrow();
+        Voucher voucher = voucherRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new NotFoundException("Voucher " + id + " not found"));
+        User user = userRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new NotFoundException("User " + userId + " not found"));
 
         voucher.setUser(user);
         voucherRepository.save(voucher);
@@ -44,8 +47,8 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public VoucherDTO update(String id, VoucherDTO voucherDTO) {
 
-        Voucher voucher = voucherRepository.findById(UUID.fromString(id)).orElseThrow();
-
+        Voucher voucher = voucherRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new NotFoundException("Voucher " + id + " not found"));
         voucher.setTitle(voucherDTO.getTitle());
         voucher.setDescription(voucherDTO.getDescription());
 
@@ -66,13 +69,15 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public void delete(String voucherId) {
-        Voucher voucher = voucherRepository.findById(UUID.fromString(voucherId)).orElseThrow();
+        Voucher voucher = voucherRepository.findById(UUID.fromString(voucherId))
+                .orElseThrow(() -> new NotFoundException("Voucher " + voucherId + " not found"));
         voucherRepository.delete(voucher);
     }
 
     @Override
     public VoucherDTO changeHotStatus(String id, VoucherDTO voucherDTO) {
-        Voucher voucher = voucherRepository.findById(UUID.fromString(id)).orElseThrow();
+        Voucher voucher = voucherRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new NotFoundException("Voucher " + id + " not found"));
         Voucher fromDto = voucherMapper.toVoucher(voucherDTO);
 
         voucher.setIsHot(fromDto.getIsHot());
