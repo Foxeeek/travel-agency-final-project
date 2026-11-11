@@ -11,15 +11,15 @@ public class UserDTO {
 
 	private String id;
 
-	@Size(min = 5, message = "minimum length is 5 characters")
-	@NotBlank(message = "username is required")
+	@Size(min = 5, message = "must be at least 5 characters long")
+	@NotBlank(message = "must not be blank")
 	private String username;
 
-	@NotBlank(message = "Password cannot be empty")
-	@Size(min = 8, max = 32, message = "Password must be between 8 and 32 characters")
+	@NotBlank(message = "must not be blank")
+	@Size(min = 8, max = 32, message = "must be 8 to 32 characters long")
 	@Pattern(
 			regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).+$",
-			message = "Password must contain uppercase, lowercase, number and special character"
+			message = "must contain an uppercase letter, a lowercase letter, a digit and a special character (@#$%^&+=!)"
 	)
 	private String password;
 
@@ -27,15 +27,15 @@ public class UserDTO {
 
 	private List<Voucher> vouchers;
 
-	@NotBlank(message = "phone number is required")
+	@NotBlank(message = "is required")
 	@Pattern(
 			regexp = "^\\+[1-9]\\d{7,14}$",
-			message = "Invalid phone number format. Example: +48123456789"
+			message = "must be in international format, e.g. +380123456789"
 	)
 	private String phoneNumber;
 
-	@NotNull
-	@PositiveOrZero(message = "balance must be positive")
+	@NotNull(message = "is required")
+	@PositiveOrZero(message = "must not be negative")
 	private Double balance;
 
 

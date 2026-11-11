@@ -3,9 +3,13 @@ package com.epam.finaltask.exception;
 import com.epam.finaltask.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestControllerAdvice
@@ -38,8 +42,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handle(MethodArgumentNotValidException e){
+        List<FieldError> errors = e.getBindingResult().getFieldErrors();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiResponse<>("BAD_REQUEST", e.getBody().getTitle(),null));
+                .body(new ApiResponse<>("BAD_REQUEST",
+                        errors.stream().map(error -> error.getField() + ": " + error.getDefaultMessage()).collect(Collectors.joining("; ")),
+                        null));
     }
 
 }
