@@ -77,8 +77,6 @@ public class UserServiceImpl implements UserService {
                             return new NotFoundException("User " + username + " not found");
                         }
                 );
-
-
         return userMapper.toUserDTO(user);
     }
 
@@ -105,7 +103,6 @@ public class UserServiceImpl implements UserService {
                             return new NotFoundException("User " + id + " not found");
                         }
                 );
-
         log.debug("Found user by id {}", id);
         return userMapper.toUserDTO(user);
     }

@@ -11,6 +11,7 @@ import java.util.UUID;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.model.Voucher;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +43,7 @@ public class UserServiceImplTest {
 
   @Nested
   class BaseTest {
+
     @Test
     void getUserByUsername_UserExists_Success() {
       // Given
@@ -232,5 +234,87 @@ public class UserServiceImplTest {
       verify(userRepository).findUserByUsername(userName);
       verify(userRepository, never()).save(any(User.class));
     }
+  }
+
+  @Nested
+  class UserLookupTest{
+
+    @Test
+    void getUserByUsername_UserNotFound_ThrowsNotFoundException(){
+      String username = "existingUser";
+
+      when(userRepository.findUserByUsername(username)).thenReturn(Optional.empty());
+
+      Assertions.assertThrows(NotFoundException.class, ()->  userService.getUserByUsername(username));
+
+      verify(userRepository).findUserByUsername(username);
+
+    }
+    @Test
+    void getUserByUsername_UserExists_ReturnsDto(){
+      String username = "existingUser";
+      User user = new User();
+      user.setUsername(username);
+      UserDTO expectedUserDTO = new UserDTO();
+      expectedUserDTO.setUsername(username);
+
+      when(userRepository.findUserByUsername(username)).thenReturn(Optional.of(user));
+      when(userMapper.toUserDTO(any(User.class))).thenReturn(expectedUserDTO);
+
+      Assertions.assertEquals(expectedUserDTO, userService.getUserByUsername(username));
+
+      verify(userRepository, times(1)).findUserByUsername(username);
+      verify(userMapper, times(1)).toUserDTO(any(User.class));
+
+    }
+
+    @Test
+    void getUserById_UserNotFound_ThrowsNotFoundException(){
+      UUID uuid = UUID.randomUUID();
+
+      when(userRepository.findById(uuid)).thenReturn(Optional.empty());
+
+      Assertions.assertThrows(NotFoundException.class, ()->  userService.getUserById(uuid));
+
+      verify(userRepository).findById(uuid);
+
+    }
+    @Test
+    void getUserById_UserExists_ReturnsDto(){
+      UUID uuid = UUID.randomUUID();
+      User user = new User();
+      user.setId(uuid);
+
+      UserDTO expectedUserDTO = new UserDTO();
+      expectedUserDTO.setId(uuid.toString());
+
+      when(userRepository.findById(uuid)).thenReturn(Optional.of(user));
+      when(userMapper.toUserDTO(any(User.class))).thenReturn(expectedUserDTO);
+
+      Assertions.assertEquals(expectedUserDTO, userService.getUserById(uuid));
+
+      verify(userRepository, times(1)).findById(uuid);
+      verify(userMapper, times(1)).toUserDTO(any(User.class));
+
+    }
+
+
+
+
+    @Test
+    void changeAccountStatus_UserNotFound_ThrowsNotFoundException(){
+      UUID uuid = UUID.randomUUID();
+      UserDTO userDTO = new UserDTO();
+      userDTO.setId(uuid.toString());
+
+      when(userRepository.findById(uuid)).thenReturn(Optional.empty());
+
+      Assertions.assertThrows(NotFoundException.class, ()->  userService.changeAccountStatus(userDTO));
+
+      verify(userRepository).findById(uuid);
+
+    }
+
+
   }
 }
