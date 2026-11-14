@@ -447,7 +447,129 @@ public class VoucherServiceImplTest {
             verify(voucherRepository).findAllByHotelType(hotelType);
         }
 
+        @Test
+        void findAllHotFirst_VouchersExist_ReturnsDtosInRepositoryOrder(){
+            List<Voucher> vouchers = new ArrayList<>();
 
+            Voucher voucher1 = buildVoucher();
+            Voucher voucher2 = buildVoucher();
+            Voucher voucher3 = buildVoucher();
+
+            vouchers.add(voucher1);
+            vouchers.add(voucher2);
+            vouchers.add(voucher3);
+
+            VoucherDTO dto1 = new VoucherDTO();
+            VoucherDTO dto2 = new VoucherDTO();
+            VoucherDTO dto3 = new VoucherDTO();
+
+            when(voucherRepository.findAllHotFirst()).thenReturn(vouchers);
+            when(voucherMapper.toVoucherDTO(voucher1)).thenReturn(dto1);
+            when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
+            when(voucherMapper.toVoucherDTO(voucher3)).thenReturn(dto3);
+
+            List<VoucherDTO> result = voucherService.findAllHotFirst();
+
+            Assertions.assertEquals(List.of(dto1, dto2, dto3), result);
+
+            verify(voucherRepository).findAllHotFirst();
+        }
+
+        @Test
+        void findAllByPriceRange_VouchersInRange_ReturnsMatchingDtos(){
+            List<Voucher> vouchers = new ArrayList<>();
+
+            Voucher voucher1 = buildVoucher();
+            Voucher voucher2 = buildVoucher();
+            Voucher voucher3 = buildVoucher();
+
+            voucher1.setPrice(new BigDecimal(500));
+            voucher2.setPrice(new BigDecimal(405));
+
+
+            vouchers.add(voucher1);
+            vouchers.add(voucher2);
+
+
+            VoucherDTO dto1 = new VoucherDTO();
+            VoucherDTO dto2 = new VoucherDTO();
+
+
+            when(voucherRepository.findAllByPriceRange(new BigDecimal(400),new BigDecimal(1000))).thenReturn(List.of(voucher1,voucher2));
+            when(voucherMapper.toVoucherDTO(voucher1)).thenReturn(dto1);
+            when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
+
+            List<VoucherDTO> result = voucherService.findAllByPriceRange(new BigDecimal(400),new BigDecimal(1000));
+
+            Assertions.assertEquals(List.of(dto1,dto2), result);
+
+            verify(voucherRepository).findAllByPriceRange(new BigDecimal(400),new BigDecimal(1000));
+        }
+
+        @Test
+        void findAllByUserIdAndStatus_UserHasPaidVouchers_ReturnsDtos(){
+            UUID userId = UUID.randomUUID();
+
+            VoucherStatus status = VoucherStatus.PAID;
+
+            List<Voucher> vouchers = new ArrayList<>();
+
+            Voucher voucher1 = buildVoucher();
+            Voucher voucher2 = buildVoucher();
+
+            User user1 = new User();
+            user1.setId(userId);
+
+            voucher1.setUser(user1);
+            voucher2.setUser(user1);
+
+            vouchers.add(voucher1);
+            vouchers.add(voucher2);
+
+            VoucherDTO dto1 = new VoucherDTO();
+            VoucherDTO dto2 = new VoucherDTO();
+
+            when(voucherRepository.findAllByUserIdAndStatus(userId,status)).thenReturn(vouchers);
+            when(voucherMapper.toVoucherDTO(voucher1)).thenReturn(dto1);
+            when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
+
+
+            List<VoucherDTO> result = voucherService.findAllByUserIdAndStatus(userId,status);
+
+            Assertions.assertEquals(List.of(dto1, dto2), result);
+
+            verify(voucherRepository).findAllByUserIdAndStatus(userId,status);
+        }
+
+    @Test
+    void findAllByArrivalPeriod_VouchersInPeriod_ReturnsMatchingDtos() {
+        List<Voucher> vouchers = new ArrayList<>();
+
+        LocalDate from = LocalDate.of(2026,12,10);
+        LocalDate to = LocalDate.of(2026,12,19);
+
+        Voucher voucher1 = buildVoucher();
+        Voucher voucher2 = buildVoucher();
+
+        vouchers.add(voucher1);
+        vouchers.add(voucher2);
+
+        VoucherDTO dto1 = new VoucherDTO();
+        VoucherDTO dto2 = new VoucherDTO();
+
+        when(voucherRepository.findAllByArrivalPeriod(from, to)).thenReturn(vouchers);
+        when(voucherMapper.toVoucherDTO(voucher1)).thenReturn(dto1);
+        when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
+
+
+        List<VoucherDTO> result = voucherService.findAllByArrivalPeriod(from, to);
+
+        Assertions.assertEquals(List.of(dto1, dto2), result);
+
+        verify(voucherRepository).findAllByArrivalPeriod(from, to);
+
+
+    }
 
     }
 }
