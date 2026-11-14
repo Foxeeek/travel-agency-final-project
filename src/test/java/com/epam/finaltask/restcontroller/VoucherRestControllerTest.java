@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,9 +67,9 @@ public class VoucherRestControllerTest {
 
     @Test
     @WithMockUser
-    void findAll_Successfully() throws Exception {
+    void findAllHotFirst_Successfully() throws Exception {
         List<VoucherDTO> voucherDTOList = new ArrayList<>();
-        when(voucherService.findAll()).thenReturn(voucherDTOList);
+        when(voucherService.findAllHotFirst()).thenReturn(voucherDTOList);
         MvcResult result = mockMvc.perform(get("/api/vouchers"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -206,4 +207,78 @@ public class VoucherRestControllerTest {
 
         verify(voucherService, times(1)).changeHotStatus(eq(voucherId), any(VoucherDTO.class));
     }
+
+    @Test
+    @WithMockUser
+    void findAllByPriceRange_Successfully() throws Exception {
+        List<VoucherDTO> voucherDTOList = new ArrayList<>();
+        BigDecimal min = new BigDecimal(200);
+        BigDecimal max = new BigDecimal(1000);
+
+        when(voucherService.findAllByPriceRange(min, max)).thenReturn(voucherDTOList);
+
+        MvcResult result = mockMvc.perform(get("/api/vouchers/price").param("min", min.toString()).param("max", max.toString()))
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseBody = result.getResponse().getContentAsString();
+
+        JsonNode rootNode = objectMapper.readTree(responseBody);
+        JsonNode resultsNode = rootNode.path("results");
+
+        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {});
+
+        assertEquals(voucherDTOList, responseVoucherDTOList);
+
+        verify(voucherService).findAllByPriceRange(min,max);
+    }
+
+    @Test
+    @WithMockUser
+    void findAllByUserIdAndStatus_Successfully() throws Exception {
+        UUID id = UUID.randomUUID();
+        List<VoucherDTO> voucherDTOList = new ArrayList<>();
+        VoucherStatus status = VoucherStatus.PAID;
+
+        when(voucherService.findAllByUserIdAndStatus(id, status)).thenReturn(voucherDTOList);
+
+        MvcResult result = mockMvc.perform(get("/api/vouchers/user/" + id + "/status").param("status",status.toString()))
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseBody = result.getResponse().getContentAsString();
+
+        JsonNode rootNode = objectMapper.readTree(responseBody);
+        JsonNode resultsNode = rootNode.path("results");
+
+        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {});
+
+        assertEquals(voucherDTOList, responseVoucherDTOList);
+
+        verify(voucherService).findAllByUserIdAndStatus(id,status);
+    }
+
+    @Test
+    @WithMockUser
+    void findAllByArrivalPeriod() throws Exception {
+        List<VoucherDTO> voucherDTOList = new ArrayList<>();
+        LocalDate from = LocalDate.of(2027,11,25);
+        LocalDate to = LocalDate.of(2027,12,12);
+
+        when(voucherService.findAllByArrivalPeriod(from, to)).thenReturn(voucherDTOList);
+
+        MvcResult result = mockMvc.perform(get("/api/vouchers/arrival").param("from", from.toString()).param("to", to.toString()))
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseBody = result.getResponse().getContentAsString();
+
+        JsonNode rootNode = objectMapper.readTree(responseBody);
+        JsonNode resultsNode = rootNode.path("results");
+
+        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {});
+
+        assertEquals(voucherDTOList, responseVoucherDTOList);
+
+        verify(voucherService).findAllByArrivalPeriod(from,to);
+    }
+
+
 }
