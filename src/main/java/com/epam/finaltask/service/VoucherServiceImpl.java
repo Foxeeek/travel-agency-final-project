@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,14 +40,14 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public VoucherDTO order(String id, String userId) {
         Voucher voucher = voucherRepository.findById(UUID.fromString(id))
-                .orElseThrow( () -> {
+                .orElseThrow(() -> {
                             log.warn("Voucher with id {} not found", id);
                             return new NotFoundException("Voucher " + id + " not found");
                         }
                 );
 
         User user = userRepository.findById(UUID.fromString(userId))
-                .orElseThrow( () -> {
+                .orElseThrow(() -> {
                             log.warn("User with id {} not found", userId);
                             return new NotFoundException("User " + userId + " not found");
                         }
@@ -62,7 +64,7 @@ public class VoucherServiceImpl implements VoucherService {
     public VoucherDTO update(String id, VoucherDTO voucherDTO) {
 
         Voucher voucher = voucherRepository.findById(UUID.fromString(id))
-                .orElseThrow( () -> {
+                .orElseThrow(() -> {
                             log.warn("Voucher with id {} not found", id);
                             return new NotFoundException("Voucher " + id + " not found");
                         }
@@ -90,7 +92,7 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public void delete(String voucherId) {
         Voucher voucher = voucherRepository.findById(UUID.fromString(voucherId))
-                .orElseThrow( () -> {
+                .orElseThrow(() -> {
                             log.warn("Voucher with id {} not found", voucherId);
                             return new NotFoundException("Voucher " + voucherId + " not found");
                         }
@@ -102,7 +104,7 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public VoucherDTO changeHotStatus(String id, VoucherDTO voucherDTO) {
         Voucher voucher = voucherRepository.findById(UUID.fromString(id))
-                .orElseThrow( () -> {
+                .orElseThrow(() -> {
                             log.warn("Voucher with id {} not found", id);
                             return new NotFoundException("Voucher " + id + " not found");
                         }
@@ -165,4 +167,52 @@ public class VoucherServiceImpl implements VoucherService {
         log.debug("Found {} vouchers", vouchers.size());
         return vouchers;
     }
+
+    @Override
+
+    public List<VoucherDTO> findAllHotFirst() {
+        List<VoucherDTO> vouchers = voucherRepository
+                .findAllHotFirst()
+                .stream()
+                .map(voucherMapper::toVoucherDTO)
+                .toList();
+        log.debug("Found {} vouchers", vouchers.size());
+        return vouchers;
+    }
+
+    @Override
+    public List<VoucherDTO> findAllByPriceRange(BigDecimal min, BigDecimal max) {
+        List<VoucherDTO> vouchers = voucherRepository
+                .findAllByPriceRange(min, max)
+                .stream()
+                .map(voucherMapper::toVoucherDTO)
+                .toList();
+        log.debug("Found {} vouchers with price between {} : {}", vouchers.size(), min, max);
+        return vouchers;
+
+    }
+
+    @Override
+    public List<VoucherDTO> findAllByUserIdAndStatus(UUID userId, VoucherStatus status) {
+        List<VoucherDTO> vouchers = voucherRepository
+                .findAllByUserIdAndStatus(userId, status)
+                .stream()
+                .map(voucherMapper::toVoucherDTO)
+                .toList();
+        log.debug("Found {} vouchers for user {} with {} status", vouchers.size(), userId, status);
+        return vouchers;
+    }
+
+    @Override
+    public List<VoucherDTO> findAllByArrivalPeriod(LocalDate from, LocalDate to) {
+        List<VoucherDTO> vouchers = voucherRepository
+                .findAllByArrivalPeriod(from, to)
+                .stream()
+                .map(voucherMapper::toVoucherDTO)
+                .toList();
+        log.debug("Found {} vouchers for period from {} to {}", vouchers.size(), from, to);
+        return vouchers;
+    }
+
+
 }

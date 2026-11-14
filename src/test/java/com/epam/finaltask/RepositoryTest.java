@@ -14,7 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-
+import java.util.List;
 
 
 @DataJpaTest
@@ -118,4 +118,96 @@ public class RepositoryTest {
         Assertions.assertEquals(1, voucherRepository.findAllByUserId(paul.getId()).size());
     }
 
+    @Test
+    void should_FindAll_HotFirst(){
+        Voucher antalya = voucherRepository.save(buildVoucher("Summer in Antalya"));
+        Voucher paris = voucherRepository.save(buildVoucher("Paris City Tour"));
+        Voucher milan = voucherRepository.save(buildVoucher("Shopping in Milan"));
+
+        antalya.setIsHot(false);
+        antalya.setPrice(new BigDecimal(500));
+
+
+        paris.setPrice(new BigDecimal(900));
+
+        milan.setIsHot(false);
+        milan.setPrice(new BigDecimal(499));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        List<Voucher> voucherList = voucherRepository.findAllHotFirst();
+
+        Assertions.assertEquals( "Paris City Tour", voucherList.get(0).getTitle());
+        Assertions.assertEquals( "Shopping in Milan", voucherList.get(1).getTitle());
+        Assertions.assertEquals( "Summer in Antalya", voucherList.get(2).getTitle());
+
+    }
+
+    @Test
+    void should_findAll_ByPriceRange(){
+        Voucher antalya = voucherRepository.save(buildVoucher("Summer in Antalya"));
+        Voucher paris = voucherRepository.save(buildVoucher("Paris City Tour"));
+        Voucher milan = voucherRepository.save(buildVoucher("Shopping in Milan"));
+
+        antalya.setPrice(new BigDecimal(500));
+        paris.setPrice(new BigDecimal(900));
+        milan.setPrice(new BigDecimal(1499));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        List<Voucher> voucherList = voucherRepository.findAllByPriceRange(new BigDecimal(400), new BigDecimal(900));
+
+        Assertions.assertEquals( 2, voucherList.size());
+        Assertions.assertEquals( "Summer in Antalya", voucherList.get(0).getTitle());
+        Assertions.assertEquals( "Paris City Tour", voucherList.get(1).getTitle());
+    }
+
+    @Test
+    void should_FindAll_UserIdAndStatus(){
+        User john = userRepository.save(buildUser("john","+444444"));
+        User paul = userRepository.save(buildUser("paul","+555555"));
+
+        Voucher antalya = voucherRepository.save(buildVoucher("Summer in Antalya"));
+        Voucher paris = voucherRepository.save(buildVoucher("Paris City Tour"));
+        Voucher milan = voucherRepository.save(buildVoucher("Shopping in Milan"));
+
+        paris.setUser(john);
+        paris.setStatus(VoucherStatus.PAID);
+
+        antalya.setUser(john);
+
+        milan.setUser(paul);
+        milan.setStatus(VoucherStatus.PAID);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        List<Voucher> voucherList = voucherRepository.findAllByUserIdAndStatus(john.getId(), VoucherStatus.PAID);
+
+        Assertions.assertEquals( 1, voucherList.size());
+    }
+
+
+    @Test
+    void should_FindAll_ByArrivalPeriod(){
+        Voucher antalya = voucherRepository.save(buildVoucher("Summer in Antalya"));
+        Voucher paris = voucherRepository.save(buildVoucher("Paris City Tour"));
+        Voucher milan = voucherRepository.save(buildVoucher("Shopping in Milan"));
+
+
+        antalya.setArrivalDate(LocalDate.of(2027, 7, 10));
+        paris.setArrivalDate(LocalDate.of(2027, 6, 12));
+        milan.setArrivalDate(LocalDate.of(2027, 6, 16));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        List<Voucher> voucherList = voucherRepository.findAllByArrivalPeriod(LocalDate.of(2027, 6, 1),LocalDate.of(2027, 6, 29));
+
+        Assertions.assertEquals( 2, voucherList.size());
+        Assertions.assertEquals( "Paris City Tour", voucherList.get(0).getTitle());
+        Assertions.assertEquals( "Shopping in Milan", voucherList.get(1).getTitle());
+    }
 }
