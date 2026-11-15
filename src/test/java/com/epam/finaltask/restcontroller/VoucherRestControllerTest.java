@@ -1,12 +1,10 @@
 package com.epam.finaltask.restcontroller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -22,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.epam.finaltask.exception.NotFoundException;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +47,8 @@ import com.epam.finaltask.service.VoucherService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -280,5 +282,116 @@ public class VoucherRestControllerTest {
         verify(voucherService).findAllByArrivalPeriod(from,to);
     }
 
+    @Nested
+    @WithMockUser
+    class ExceptionErrorTest{
 
+
+        @Test
+        void createVoucher_MissingTitle_Returns400() throws Exception{
+            VoucherDTO voucherDTO = new VoucherDTO();
+            voucherDTO.setDescription("Summer Sale Voucher Description");
+            voucherDTO.setPrice(299.99);
+            voucherDTO.setTourType(TourType.ADVENTURE.name());
+            voucherDTO.setTransferType(TransferType.PLANE.name());
+            voucherDTO.setHotelType(HotelType.FIVE_STARS.name());
+            voucherDTO.setStatus(VoucherStatus.PAID.name());
+            voucherDTO.setArrivalDate(LocalDate.of(2024, 6, 15));
+            voucherDTO.setEvictionDate(LocalDate.of(2024, 6, 20));
+            voucherDTO.setUserId(UUID.randomUUID());
+            voucherDTO.setIsHot(false);
+
+            String expectedStatusCode = "BAD_REQUEST";
+
+            mockMvc.perform(post("/api/vouchers")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsBytes(voucherDTO)))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                    .andExpect(jsonPath("$.statusMessage").value(containsString("title")));
+            verifyNoInteractions(voucherService);
+        }
+
+        @Test
+        void createVoucher_NegativePrice_Returns400() throws Exception{
+            VoucherDTO voucherDTO = new VoucherDTO();
+            voucherDTO.setTitle("Voucher title");
+            voucherDTO.setDescription("Summer Sale Voucher Description");
+            voucherDTO.setPrice(-299.99);
+            voucherDTO.setTourType(TourType.ADVENTURE.name());
+            voucherDTO.setTransferType(TransferType.PLANE.name());
+            voucherDTO.setHotelType(HotelType.FIVE_STARS.name());
+            voucherDTO.setStatus(VoucherStatus.PAID.name());
+            voucherDTO.setArrivalDate(LocalDate.of(2024, 6, 15));
+            voucherDTO.setEvictionDate(LocalDate.of(2024, 6, 20));
+            voucherDTO.setUserId(UUID.randomUUID());
+            voucherDTO.setIsHot(false);
+
+            String expectedStatusCode = "BAD_REQUEST";
+
+            mockMvc.perform(post("/api/vouchers")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsBytes(voucherDTO)))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                    .andExpect(jsonPath("$.statusMessage").value(containsString("price")));
+            verifyNoInteractions(voucherService);
+        }
+
+        @Test
+        void updateVoucher_NotFound_Returns404() throws Exception{
+            VoucherDTO voucherDTO = new VoucherDTO();
+            UUID id = UUID.randomUUID();
+            voucherDTO.setTitle("Voucher title");
+            voucherDTO.setDescription("Summer Sale Voucher Description");
+            voucherDTO.setPrice(299.99);
+            voucherDTO.setTourType(TourType.ADVENTURE.name());
+            voucherDTO.setTransferType(TransferType.PLANE.name());
+            voucherDTO.setHotelType(HotelType.FIVE_STARS.name());
+            voucherDTO.setStatus(VoucherStatus.PAID.name());
+            voucherDTO.setArrivalDate(LocalDate.of(2024, 6, 15));
+            voucherDTO.setEvictionDate(LocalDate.of(2024, 6, 20));
+            voucherDTO.setUserId(UUID.randomUUID());
+            voucherDTO.setIsHot(false);
+
+            String expectedStatusCode = "NOT_FOUND";
+            String expectedMessage= "Voucher not found";
+
+            when(voucherService.update(any(), any())).thenThrow(new NotFoundException(expectedMessage));
+
+            mockMvc.perform(patch("/api/vouchers/{id}",id)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsBytes(voucherDTO)))
+                    .andDo(print())
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                    .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+
+            verify(voucherService).update(eq(id.toString()), any(VoucherDTO.class));
+        }
+
+        @Test
+        void deleteVoucher_NotFound_Returns404() throws Exception{
+            UUID id = UUID.randomUUID();
+
+            String expectedStatusCode = "NOT_FOUND";
+            String expectedMessage= "Voucher not found";
+
+            doThrow(new NotFoundException(expectedMessage)).when(voucherService).delete(id.toString());
+
+            mockMvc.perform(delete("/api/vouchers/{id}",id))
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                    .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+
+            verify(voucherService).delete(id.toString());
+        }
+
+    }
 }
