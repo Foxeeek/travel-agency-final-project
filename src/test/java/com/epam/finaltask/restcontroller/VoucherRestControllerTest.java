@@ -393,5 +393,50 @@ public class VoucherRestControllerTest {
             verify(voucherService).delete(id.toString());
         }
 
+
+        @Test
+        void findAllByPriceRange_MissingParams_Returns400() throws Exception{
+            String expectedStatusCode = "BAD_REQUEST";
+
+            mockMvc.perform(get("/api/vouchers/price"))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                    .andExpect(jsonPath("$.statusMessage").value(containsString("min")));
+
+            verifyNoInteractions(voucherService);
+        }
+
+        @Test
+        void findAllByPriceRange_InvalidMinType_Returns400() throws Exception{
+            String expectedStatusCode = "BAD_REQUEST";
+
+            mockMvc.perform(get("/api/vouchers/price?min=abc&max=1000"))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                    .andExpect(jsonPath("$.statusMessage").value("Required parameter min has invalid value: 'abc'"));
+
+            verifyNoInteractions(voucherService);
+        }
+
+        @Test
+        void unknownUrl_Returns404() throws Exception{
+
+            String expectedStatusCode = "NOT_FOUND";
+            String expectedMessage= "Resource not found";
+
+            mockMvc.perform(patch("/api/no-such-path"))
+                    .andDo(print())
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                    .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+
+            verifyNoInteractions(voucherService);
+        }
+
     }
 }
