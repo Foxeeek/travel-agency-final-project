@@ -30,7 +30,7 @@ public class UserDTO {
 	@NotBlank(message = "is required")
 	@Pattern(
 			regexp = "^\\+[1-9]\\d{7,14}$",
-			message = "must be in international format, e.g. +380123456789"
+			message = "must be in international format, e.g. +123 456789"
 	)
 	private String phoneNumber;
 
