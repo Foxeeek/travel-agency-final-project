@@ -4,13 +4,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
-import com.epam.finaltask.model.Voucher;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -171,68 +169,6 @@ public class UserServiceImplTest {
       assertThrows(ConflictException.class,() -> userService.register(userDTO));
 
       verify(userRepository,never()).save(any());
-    }
-  }
-
-  @Nested
-  class UpdateUserTest{
-    @Test
-    void updateUser_ExistingUser_UpdatesFieldsAndEncodesPassword(){
-      UUID userId = UUID.randomUUID();
-      String userName = "John";
-      String rawPass = "rawPass";
-
-      User user = new User();
-      user.setId(userId);
-      user.setActive(false);
-      user.setUsername(userName);
-
-      UserDTO userDTO = new UserDTO();
-      userDTO.setId(userId.toString());
-      userDTO.setUsername("JohnNew");
-      userDTO.setActive(true);
-      userDTO.setPassword(rawPass);
-      userDTO.setPhoneNumber("+380123456789");
-      userDTO.setBalance(0.00);
-
-
-      when(userRepository.findUserByUsername(userName)).thenReturn(Optional.of(user));
-      when(userMapper.toUserDTO(any(User.class))).thenReturn(userDTO);
-      when(passwordEncoder.encode(rawPass)).thenReturn("hashedPassword");
-
-      UserDTO result = userService.updateUser(userName,userDTO);
-
-      ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-
-      verify(userRepository).save(captor.capture());
-
-
-      assertSame(userDTO,result);
-
-      assertEquals("JohnNew", captor.getValue().getUsername());
-      assertEquals("hashedPassword", captor.getValue().getPassword());
-      assertEquals("+380123456789", captor.getValue().getPhoneNumber());
-      assertTrue(captor.getValue().isActive());
-      assertEquals(0, new BigDecimal("0.00").compareTo(captor.getValue().getBalance()));
-
-
-    }
-
-    @Test
-    void updateUser_UserNotFound_ThrowsNotFoundException(){
-      UUID userId = UUID.randomUUID();
-      String userName = "John";
-
-      UserDTO userDTO = new UserDTO();
-      userDTO.setId(userId.toString());
-      userDTO.setUsername(userName);
-
-      when(userRepository.findUserByUsername(userName)).thenReturn(Optional.empty());
-
-      assertThrows(NotFoundException.class, () -> userService.updateUser(userName,userDTO));
-
-      verify(userRepository).findUserByUsername(userName);
-      verify(userRepository, never()).save(any(User.class));
     }
   }
 

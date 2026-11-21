@@ -2,7 +2,6 @@ package com.epam.finaltask.service;
 
 
 import com.epam.finaltask.dto.VoucherDTO;
-import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
@@ -15,7 +14,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.AssertionErrors.assertEquals;

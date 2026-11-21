@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Slf4j
@@ -60,25 +59,6 @@ public class UserServiceImpl implements UserService {
             throw new ConflictException("User " + userDTO.getUsername() + " already exists");
         }
 
-
-    }
-
-    @Override
-    public UserDTO updateUser(String username, UserDTO userDTO) {
-        User user = userByUsername(username);
-
-        user.setUsername(userDTO.getUsername());
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        user.setVouchers(userDTO.getVouchers());
-        user.setPhoneNumber(userDTO.getPhoneNumber());
-        user.setBalance(BigDecimal.valueOf(userDTO.getBalance()));
-        user.setActive(userDTO.isActive());
-
-        userRepository.save(user);
-
-        log.info("User {} updated successfully", user.getUsername());
-
-        return userMapper.toUserDTO(user);
 
     }
 

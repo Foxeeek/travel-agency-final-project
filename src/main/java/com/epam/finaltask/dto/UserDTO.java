@@ -5,7 +5,6 @@ import java.util.List;
 import com.epam.finaltask.model.Voucher;
 
 import jakarta.validation.constraints.*;
-import lombok.Data;
 
 public class UserDTO {
 

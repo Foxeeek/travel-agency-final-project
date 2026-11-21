@@ -8,9 +8,7 @@ import java.util.UUID;
 import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.model.HotelType;
 import com.epam.finaltask.model.TourType;
-import com.epam.finaltask.model.Voucher;
 import com.epam.finaltask.model.VoucherStatus;
-import org.springframework.data.jpa.repository.Query;
 
 public interface VoucherService {
     VoucherDTO create(VoucherDTO voucherDTO);
