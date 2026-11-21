@@ -1,12 +1,10 @@
 package com.epam.finaltask.restcontroller;
 
+import com.epam.finaltask.auth.CustomUserDetails;
 import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
-import com.epam.finaltask.model.HotelType;
-import com.epam.finaltask.model.TourType;
-import com.epam.finaltask.model.TransferType;
-import com.epam.finaltask.model.VoucherStatus;
+import com.epam.finaltask.model.*;
 import com.epam.finaltask.service.VoucherOrderService;
 import com.epam.finaltask.service.VoucherService;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -40,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -515,6 +514,112 @@ public class VoucherRestControllerTest {
                 .andExpect(jsonPath("$.statusCode").value("CONFLICT"));
 
         verify(voucherOrderService).changeStatus(id, VoucherStatus.PAID);
+    }
+
+
+    @Test
+    void order_AsUser_Returns200() throws Exception{
+        UUID id = UUID.randomUUID();
+        User user = new User();
+        user.setId(id);
+        user.setRole(Role.USER);
+
+        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+
+
+        String expectedStatusCode = "OK";
+        String expectedMessage= "Voucher is successfully ordered";
+
+        VoucherDTO dto = new VoucherDTO();
+
+        when(voucherOrderService.order(id, user.getId())).thenReturn(dto);
+
+        mockMvc.perform(post("/api/vouchers/{id}/order", id)
+                        .with(user(customUserDetails)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+
+        verify(voucherOrderService).order(id, user.getId());
+    }
+
+    @Test
+    void order_AsManager_Returns403() throws Exception{
+        UUID id = UUID.randomUUID();
+        User user = new User();
+        user.setId(id);
+        user.setRole(Role.MANAGER);
+
+        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+
+
+        String expectedStatusCode = "FORBIDDEN";
+        String expectedMessage= "Access denied";
+
+        VoucherDTO dto = new VoucherDTO();
+
+        when(voucherOrderService.order(id, user.getId())).thenReturn(dto);
+
+        mockMvc.perform(post("/api/vouchers/{id}/order", id)
+                        .with(user(customUserDetails)))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+
+        verify(voucherOrderService, never()).order(id, user.getId());
+    }
+
+    @Test
+    void order_Unauthenticated_Returns401() throws Exception{
+        UUID id = UUID.randomUUID();
+        User user = new User();
+        user.setId(id);
+
+        String expectedStatusCode = "UNAUTHORIZED";
+        String expectedMessage= "Authentication required";
+
+        VoucherDTO dto = new VoucherDTO();
+
+        when(voucherOrderService.order(id, user.getId())).thenReturn(dto);
+
+        mockMvc.perform(post("/api/vouchers/{id}/order", id))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+
+        verify(voucherOrderService, never()).order(id, user.getId());
+    }
+
+    @Test
+    void order_InsufficientBalance_Returns409() throws Exception{
+        UUID id = UUID.randomUUID();
+        User user = new User();
+        user.setId(id);
+        user.setBalance(BigDecimal.valueOf(100));
+        user.setRole(Role.USER);
+
+        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+
+        String expectedStatusCode = "CONFLICT";
+        String expectedMessage= "Not enough money";
+
+        when(voucherOrderService.order(id, user.getId())).thenThrow(new ConflictException("Not enough money"));
+
+        mockMvc.perform(post("/api/vouchers/{id}/order", id)
+                        .with(user(customUserDetails)))
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+
+        verify(voucherOrderService).order(id, user.getId());
     }
 
 }

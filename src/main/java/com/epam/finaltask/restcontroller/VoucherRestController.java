@@ -1,5 +1,6 @@
 package com.epam.finaltask.restcontroller;
 
+import com.epam.finaltask.auth.CustomUserDetails;
 import com.epam.finaltask.dto.ApiResponse;
 import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.dto.VoucherStatusRequestDTO;
@@ -11,6 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -94,6 +96,13 @@ public class VoucherRestController {
     public ResponseEntity<ApiResponse<VoucherDTO>> changeOrderStatus(@PathVariable UUID id, @Valid @RequestBody VoucherStatusRequestDTO request) {
         VoucherDTO voucher = voucherOrderService.changeStatus(id, request.getStatus());
         return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher status is successfully changed", voucher));
+    }
+
+    @PostMapping("/{id}/order")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<VoucherDTO>> order(@PathVariable UUID id, @AuthenticationPrincipal CustomUserDetails principal) {
+        VoucherDTO voucher = voucherOrderService.order(id, principal.getUser().getId());
+        return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher is successfully ordered", voucher));
     }
 
 }

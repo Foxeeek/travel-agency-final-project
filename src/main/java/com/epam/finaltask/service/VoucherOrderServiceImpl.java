@@ -73,6 +73,7 @@ public class VoucherOrderServiceImpl implements VoucherOrderService{
 
 
     @Override
+    @Transactional
     public VoucherDTO changeStatus(UUID id, VoucherStatus status) {
         Voucher voucher = voucherRepository.findById(id)
                 .orElseThrow(() -> {
@@ -93,6 +94,14 @@ public class VoucherOrderServiceImpl implements VoucherOrderService{
             log.warn("Voucher {} cannot be moved to status {}", id, status);
             throw new ConflictException("Status can only be changed to PAID or CANCELED");
         }
+
+        if (status == VoucherStatus.CANCELED){
+            User user = voucher.getUser();
+            user.setBalance(user.getBalance().add(voucher.getPrice()));
+            userRepository.save(user);
+            log.info("Voucher {} canceled, {} returned to user {}", id, voucher.getPrice(), user.getUsername());
+        }
+
         voucher.setStatus(status);
         voucherRepository.save(voucher);
 

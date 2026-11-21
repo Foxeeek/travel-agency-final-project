@@ -223,6 +223,7 @@ public class VoucherOrderServiceImplTest {
                     ArgumentCaptor.forClass(Voucher.class);
 
             verify(voucherRepository).save(captor.capture());
+            verify(userRepository, never()).save(any());
 
             Assertions.assertSame(voucherDTO, result);
             Assertions.assertEquals(VoucherStatus.PAID,captor.getValue().getStatus());
@@ -234,6 +235,7 @@ public class VoucherOrderServiceImplTest {
             UUID id = UUID.randomUUID();
             User user = new User();
             user.setId(id);
+            user.setBalance(BigDecimal.valueOf(150));
             Voucher voucher = buildVoucher();
             voucher.setId(id);
             voucher.setUser(user);
@@ -255,6 +257,8 @@ public class VoucherOrderServiceImplTest {
 
             Assertions.assertSame(voucherDTO, result);
             Assertions.assertEquals(VoucherStatus.CANCELED,captor.getValue().getStatus());
+            Assertions.assertEquals(0, BigDecimal.valueOf(1000).compareTo(user.getBalance()));
+
         }
 
         @Test
