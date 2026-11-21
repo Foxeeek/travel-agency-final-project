@@ -77,10 +77,11 @@ public class VoucherRestControllerTest {
         JsonNode rootNode = objectMapper.readTree(responseBody);
         JsonNode resultsNode = rootNode.path("results");
 
-        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {});
+        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {
+        });
         assertEquals(voucherDTOList, responseVoucherDTOList);
     }
-    
+
     @Test
     @WithMockUser(authorities = "ROLE_MANAGER")
     void findAllByUserId_Successfully() throws Exception {
@@ -97,7 +98,8 @@ public class VoucherRestControllerTest {
         JsonNode rootNode = objectMapper.readTree(responseBody);
         JsonNode resultsNode = rootNode.path("results");
 
-        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {});
+        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {
+        });
 
         assertEquals(voucherDTOList, responseVoucherDTOList);
     }
@@ -224,15 +226,16 @@ public class VoucherRestControllerTest {
         JsonNode rootNode = objectMapper.readTree(responseBody);
         JsonNode resultsNode = rootNode.path("results");
 
-        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {});
+        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {
+        });
 
         assertEquals(voucherDTOList, responseVoucherDTOList);
 
-        verify(voucherService).findAllByPriceRange(min,max);
+        verify(voucherService).findAllByPriceRange(min, max);
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = "ROLE_MANAGER")
     void findAllByUserIdAndStatus_Successfully() throws Exception {
         UUID id = UUID.randomUUID();
         List<VoucherDTO> voucherDTOList = new ArrayList<>();
@@ -240,7 +243,7 @@ public class VoucherRestControllerTest {
 
         when(voucherService.findAllByUserIdAndStatus(id, status)).thenReturn(voucherDTOList);
 
-        MvcResult result = mockMvc.perform(get("/api/vouchers/user/" + id + "/status").param("status",status.toString()))
+        MvcResult result = mockMvc.perform(get("/api/vouchers/user/" + id + "/status").param("status", status.toString()))
                 .andExpect(status().isOk())
                 .andReturn();
         String responseBody = result.getResponse().getContentAsString();
@@ -248,19 +251,20 @@ public class VoucherRestControllerTest {
         JsonNode rootNode = objectMapper.readTree(responseBody);
         JsonNode resultsNode = rootNode.path("results");
 
-        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {});
+        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {
+        });
 
         assertEquals(voucherDTOList, responseVoucherDTOList);
 
-        verify(voucherService).findAllByUserIdAndStatus(id,status);
+        verify(voucherService).findAllByUserIdAndStatus(id, status);
     }
 
     @Test
     @WithMockUser
     void findAllByArrivalPeriod() throws Exception {
         List<VoucherDTO> voucherDTOList = new ArrayList<>();
-        LocalDate from = LocalDate.of(2027,11,25);
-        LocalDate to = LocalDate.of(2027,12,12);
+        LocalDate from = LocalDate.of(2027, 11, 25);
+        LocalDate to = LocalDate.of(2027, 12, 12);
 
         when(voucherService.findAllByArrivalPeriod(from, to)).thenReturn(voucherDTOList);
 
@@ -272,20 +276,21 @@ public class VoucherRestControllerTest {
         JsonNode rootNode = objectMapper.readTree(responseBody);
         JsonNode resultsNode = rootNode.path("results");
 
-        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {});
+        List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {
+        });
 
         assertEquals(voucherDTOList, responseVoucherDTOList);
 
-        verify(voucherService).findAllByArrivalPeriod(from,to);
+        verify(voucherService).findAllByArrivalPeriod(from, to);
     }
 
     @Nested
     @WithMockUser(authorities = "ROLE_ADMIN")
-    class ExceptionErrorTest{
+    class ExceptionErrorTest {
 
 
         @Test
-        void createVoucher_MissingTitle_Returns400() throws Exception{
+        void createVoucher_MissingTitle_Returns400() throws Exception {
             VoucherDTO voucherDTO = new VoucherDTO();
             voucherDTO.setDescription("Summer Sale Voucher Description");
             voucherDTO.setPrice(299.99);
@@ -312,7 +317,7 @@ public class VoucherRestControllerTest {
         }
 
         @Test
-        void createVoucher_NegativePrice_Returns400() throws Exception{
+        void createVoucher_NegativePrice_Returns400() throws Exception {
             VoucherDTO voucherDTO = new VoucherDTO();
             voucherDTO.setTitle("Voucher title");
             voucherDTO.setDescription("Summer Sale Voucher Description");
@@ -340,7 +345,7 @@ public class VoucherRestControllerTest {
         }
 
         @Test
-        void updateVoucher_NotFound_Returns404() throws Exception{
+        void updateVoucher_NotFound_Returns404() throws Exception {
             VoucherDTO voucherDTO = new VoucherDTO();
             UUID id = UUID.randomUUID();
             voucherDTO.setTitle("Voucher title");
@@ -356,11 +361,11 @@ public class VoucherRestControllerTest {
             voucherDTO.setIsHot(false);
 
             String expectedStatusCode = "NOT_FOUND";
-            String expectedMessage= "Voucher not found";
+            String expectedMessage = "Voucher not found";
 
             when(voucherService.update(any(), any())).thenThrow(new NotFoundException(expectedMessage));
 
-            mockMvc.perform(patch("/api/vouchers/{id}",id)
+            mockMvc.perform(patch("/api/vouchers/{id}", id)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsBytes(voucherDTO)))
                     .andDo(print())
@@ -373,15 +378,15 @@ public class VoucherRestControllerTest {
         }
 
         @Test
-        void deleteVoucher_NotFound_Returns404() throws Exception{
+        void deleteVoucher_NotFound_Returns404() throws Exception {
             UUID id = UUID.randomUUID();
 
             String expectedStatusCode = "NOT_FOUND";
-            String expectedMessage= "Voucher not found";
+            String expectedMessage = "Voucher not found";
 
             doThrow(new NotFoundException(expectedMessage)).when(voucherService).delete(id.toString());
 
-            mockMvc.perform(delete("/api/vouchers/{id}",id))
+            mockMvc.perform(delete("/api/vouchers/{id}", id))
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
@@ -392,7 +397,7 @@ public class VoucherRestControllerTest {
 
 
         @Test
-        void findAllByPriceRange_MissingParams_Returns400() throws Exception{
+        void findAllByPriceRange_MissingParams_Returns400() throws Exception {
             String expectedStatusCode = "BAD_REQUEST";
 
             mockMvc.perform(get("/api/vouchers/price"))
@@ -406,7 +411,7 @@ public class VoucherRestControllerTest {
         }
 
         @Test
-        void findAllByPriceRange_InvalidMinType_Returns400() throws Exception{
+        void findAllByPriceRange_InvalidMinType_Returns400() throws Exception {
             String expectedStatusCode = "BAD_REQUEST";
 
             mockMvc.perform(get("/api/vouchers/price?min=abc&max=1000"))
@@ -420,10 +425,10 @@ public class VoucherRestControllerTest {
         }
 
         @Test
-        void unknownUrl_Returns404() throws Exception{
+        void unknownUrl_Returns404() throws Exception {
 
             String expectedStatusCode = "NOT_FOUND";
-            String expectedMessage= "Resource not found";
+            String expectedMessage = "Resource not found";
 
             mockMvc.perform(patch("/api/no-such-path"))
                     .andDo(print())
@@ -440,11 +445,11 @@ public class VoucherRestControllerTest {
 
     @Test
     @WithMockUser(authorities = "ROLE_MANAGER")
-    void changeOrderStatus_ValidData_Returns200() throws Exception{
+    void changeOrderStatus_ValidData_Returns200() throws Exception {
         UUID id = UUID.randomUUID();
 
         String expectedStatusCode = "OK";
-        String expectedMessage= "Voucher status is successfully changed";
+        String expectedMessage = "Voucher status is successfully changed";
 
         VoucherDTO dto = new VoucherDTO();
 
@@ -459,13 +464,14 @@ public class VoucherRestControllerTest {
 
         verify(voucherOrderService).changeStatus(id, VoucherStatus.PAID);
     }
+
     @Test
     @WithMockUser(authorities = "ROLE_USER")
-    void changeOrderStatus_AsUser_Returns403() throws Exception{
+    void changeOrderStatus_AsUser_Returns403() throws Exception {
         UUID id = UUID.randomUUID();
 
         String expectedStatusCode = "FORBIDDEN";
-        String expectedMessage= "Access denied";
+        String expectedMessage = "Access denied";
 
         mockMvc.perform(patch("/api/vouchers/{id}/order-status", id).contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"PAID\"}"))
                 .andDo(print())
@@ -481,11 +487,11 @@ public class VoucherRestControllerTest {
 
     @Test
     @WithMockUser(authorities = "ROLE_MANAGER")
-    void changeOrderStatus_InvalidStatus_Returns400() throws Exception{
+    void changeOrderStatus_InvalidStatus_Returns400() throws Exception {
         UUID id = UUID.randomUUID();
 
         String expectedStatusCode = "BAD_REQUEST";
-        String expectedMessage= "Malformed request body";
+        String expectedMessage = "Malformed request body";
 
         VoucherDTO dto = new VoucherDTO();
 
@@ -501,7 +507,7 @@ public class VoucherRestControllerTest {
 
     @Test
     @WithMockUser(authorities = "ROLE_MANAGER")
-    void changeOrderStatus_Conflict_Returns409() throws Exception{
+    void changeOrderStatus_Conflict_Returns409() throws Exception {
         UUID id = UUID.randomUUID();
 
         when(voucherOrderService.changeStatus(id, VoucherStatus.PAID)).thenThrow(new ConflictException("Voucher has no user"));
@@ -518,7 +524,7 @@ public class VoucherRestControllerTest {
 
 
     @Test
-    void order_AsUser_Returns200() throws Exception{
+    void order_AsUser_Returns200() throws Exception {
         UUID id = UUID.randomUUID();
         User user = new User();
         user.setId(id);
@@ -528,7 +534,7 @@ public class VoucherRestControllerTest {
 
 
         String expectedStatusCode = "OK";
-        String expectedMessage= "Voucher is successfully ordered";
+        String expectedMessage = "Voucher is successfully ordered";
 
         VoucherDTO dto = new VoucherDTO();
 
@@ -546,7 +552,7 @@ public class VoucherRestControllerTest {
     }
 
     @Test
-    void order_AsManager_Returns403() throws Exception{
+    void order_AsManager_Returns403() throws Exception {
         UUID id = UUID.randomUUID();
         User user = new User();
         user.setId(id);
@@ -556,7 +562,7 @@ public class VoucherRestControllerTest {
 
 
         String expectedStatusCode = "FORBIDDEN";
-        String expectedMessage= "Access denied";
+        String expectedMessage = "Access denied";
 
         VoucherDTO dto = new VoucherDTO();
 
@@ -574,13 +580,13 @@ public class VoucherRestControllerTest {
     }
 
     @Test
-    void order_Unauthenticated_Returns401() throws Exception{
+    void order_Unauthenticated_Returns401() throws Exception {
         UUID id = UUID.randomUUID();
         User user = new User();
         user.setId(id);
 
         String expectedStatusCode = "UNAUTHORIZED";
-        String expectedMessage= "Authentication required";
+        String expectedMessage = "Authentication required";
 
         VoucherDTO dto = new VoucherDTO();
 
@@ -597,7 +603,7 @@ public class VoucherRestControllerTest {
     }
 
     @Test
-    void order_InsufficientBalance_Returns409() throws Exception{
+    void order_InsufficientBalance_Returns409() throws Exception {
         UUID id = UUID.randomUUID();
         User user = new User();
         user.setId(id);
@@ -607,7 +613,7 @@ public class VoucherRestControllerTest {
         CustomUserDetails customUserDetails = new CustomUserDetails(user);
 
         String expectedStatusCode = "CONFLICT";
-        String expectedMessage= "Not enough money";
+        String expectedMessage = "Not enough money";
 
         when(voucherOrderService.order(id, user.getId())).thenThrow(new ConflictException("Not enough money"));
 

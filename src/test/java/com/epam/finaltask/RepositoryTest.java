@@ -56,7 +56,7 @@ public class RepositoryTest {
 
     @Test
     void createVoucher_ValidData_SuccessfullyCreated_Test() {
-        User user = userRepository.save(buildUser("tester","+111111"));
+        User user = userRepository.save(buildUser("tester", "+111111"));
         Voucher voucher = voucherRepository.save(buildVoucher("Summer in Antalya"));
         voucher.setUser(user);
         entityManager.flush();
@@ -72,9 +72,9 @@ public class RepositoryTest {
 
     @Test
     void shouldThrow_Exception_WhenUsername_AlreadyExists() {
-        User user = userRepository.save(buildUser("tester","+222222"));
+        User user = userRepository.save(buildUser("tester", "+222222"));
         Assertions.assertThrows(DataIntegrityViolationException.class, () -> {
-            User user1 = userRepository.save(buildUser("tester","+333333"));
+            User user1 = userRepository.save(buildUser("tester", "+333333"));
             userRepository.saveAndFlush(user1);
         });
 
@@ -95,8 +95,8 @@ public class RepositoryTest {
     @Test
     void should_FindVouchers_ByUserId() {
 
-        User john = userRepository.save(buildUser("john","+444444"));
-        User paul = userRepository.save(buildUser("paul","+555555"));
+        User john = userRepository.save(buildUser("john", "+444444"));
+        User paul = userRepository.save(buildUser("paul", "+555555"));
 
 
         Voucher antalya = voucherRepository.save(buildVoucher("Summer in Antalya"));
@@ -119,7 +119,7 @@ public class RepositoryTest {
     }
 
     @Test
-    void should_FindAll_HotFirst(){
+    void should_FindAll_HotFirst() {
         Voucher antalya = voucherRepository.save(buildVoucher("Summer in Antalya"));
         Voucher paris = voucherRepository.save(buildVoucher("Paris City Tour"));
         Voucher milan = voucherRepository.save(buildVoucher("Shopping in Milan"));
@@ -138,14 +138,14 @@ public class RepositoryTest {
 
         List<Voucher> voucherList = voucherRepository.findAllHotFirst();
 
-        Assertions.assertEquals( "Paris City Tour", voucherList.get(0).getTitle());
-        Assertions.assertEquals( "Shopping in Milan", voucherList.get(1).getTitle());
-        Assertions.assertEquals( "Summer in Antalya", voucherList.get(2).getTitle());
+        Assertions.assertEquals("Paris City Tour", voucherList.get(0).getTitle());
+        Assertions.assertEquals("Shopping in Milan", voucherList.get(1).getTitle());
+        Assertions.assertEquals("Summer in Antalya", voucherList.get(2).getTitle());
 
     }
 
     @Test
-    void should_findAll_ByPriceRange(){
+    void should_findAll_ByPriceRange() {
         Voucher antalya = voucherRepository.save(buildVoucher("Summer in Antalya"));
         Voucher paris = voucherRepository.save(buildVoucher("Paris City Tour"));
         Voucher milan = voucherRepository.save(buildVoucher("Shopping in Milan"));
@@ -159,15 +159,15 @@ public class RepositoryTest {
 
         List<Voucher> voucherList = voucherRepository.findAllByPriceRange(new BigDecimal(400), new BigDecimal(900));
 
-        Assertions.assertEquals( 2, voucherList.size());
-        Assertions.assertEquals( "Summer in Antalya", voucherList.get(0).getTitle());
-        Assertions.assertEquals( "Paris City Tour", voucherList.get(1).getTitle());
+        Assertions.assertEquals(2, voucherList.size());
+        Assertions.assertEquals("Summer in Antalya", voucherList.get(0).getTitle());
+        Assertions.assertEquals("Paris City Tour", voucherList.get(1).getTitle());
     }
 
     @Test
-    void should_FindAll_UserIdAndStatus(){
-        User john = userRepository.save(buildUser("john","+444444"));
-        User paul = userRepository.save(buildUser("paul","+555555"));
+    void should_FindAll_UserIdAndStatus() {
+        User john = userRepository.save(buildUser("john", "+444444"));
+        User paul = userRepository.save(buildUser("paul", "+555555"));
 
         Voucher antalya = voucherRepository.save(buildVoucher("Summer in Antalya"));
         Voucher paris = voucherRepository.save(buildVoucher("Paris City Tour"));
@@ -186,12 +186,12 @@ public class RepositoryTest {
 
         List<Voucher> voucherList = voucherRepository.findAllByUserIdAndStatus(john.getId(), VoucherStatus.PAID);
 
-        Assertions.assertEquals( 1, voucherList.size());
+        Assertions.assertEquals(1, voucherList.size());
     }
 
 
     @Test
-    void should_FindAll_ByArrivalPeriod(){
+    void should_FindAll_ByArrivalPeriod() {
         Voucher antalya = voucherRepository.save(buildVoucher("Summer in Antalya"));
         Voucher paris = voucherRepository.save(buildVoucher("Paris City Tour"));
         Voucher milan = voucherRepository.save(buildVoucher("Shopping in Milan"));
@@ -204,10 +204,10 @@ public class RepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        List<Voucher> voucherList = voucherRepository.findAllByArrivalPeriod(LocalDate.of(2027, 6, 1),LocalDate.of(2027, 6, 29));
+        List<Voucher> voucherList = voucherRepository.findAllByArrivalPeriod(LocalDate.of(2027, 6, 1), LocalDate.of(2027, 6, 29));
 
-        Assertions.assertEquals( 2, voucherList.size());
-        Assertions.assertEquals( "Paris City Tour", voucherList.get(0).getTitle());
-        Assertions.assertEquals( "Shopping in Milan", voucherList.get(1).getTitle());
+        Assertions.assertEquals(2, voucherList.size());
+        Assertions.assertEquals("Paris City Tour", voucherList.get(0).getTitle());
+        Assertions.assertEquals("Shopping in Milan", voucherList.get(1).getTitle());
     }
 }

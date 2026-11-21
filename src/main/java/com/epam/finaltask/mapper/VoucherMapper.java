@@ -9,6 +9,7 @@ import org.mapstruct.Mapping;
 public interface VoucherMapper {
     @Mapping(target = "user", ignore = true)
     Voucher toVoucher(VoucherDTO voucherDTO);
+
     @Mapping(source = "user.id", target = "userId")
     VoucherDTO toVoucherDTO(Voucher voucher);
 }

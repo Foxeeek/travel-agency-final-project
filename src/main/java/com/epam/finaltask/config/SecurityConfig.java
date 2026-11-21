@@ -29,7 +29,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         return http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests( auth -> auth
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**")
                         .permitAll()
                         .anyRequest()
@@ -37,12 +37,12 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(e ->
                         e.authenticationEntryPoint(
-                                (req, res, ex) ->
-                                writeError(res, HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Authentication required"))
+                                        (req, res, ex) ->
+                                                writeError(res, HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Authentication required"))
                                 .accessDeniedHandler(
                                         (req, res, ex) ->
                                                 writeError(res, HttpStatus.FORBIDDEN, "FORBIDDEN", "Access denied"))
-                                )
+                )
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -52,7 +52,7 @@ public class SecurityConfig {
     private void writeError(HttpServletResponse response, HttpStatus status, String code, String message) throws IOException {
         response.setStatus(status.value());
         response.setContentType("application/json");
-        objectMapper.writeValue(response.getOutputStream(), new ApiResponse<>(code,message,null));
+        objectMapper.writeValue(response.getOutputStream(), new ApiResponse<>(code, message, null));
     }
 
 }

@@ -1,13 +1,12 @@
 package com.epam.finaltask.restcontroller;
 
 import com.epam.finaltask.auth.CustomUserDetails;
-import com.epam.finaltask.dto.ApiResponse;
-import com.epam.finaltask.dto.VoucherDTO;
-import com.epam.finaltask.dto.VoucherStatusRequestDTO;
+import com.epam.finaltask.dto.*;
 import com.epam.finaltask.model.VoucherStatus;
 import com.epam.finaltask.service.VoucherOrderService;
 import com.epam.finaltask.service.VoucherService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +31,7 @@ public class VoucherRestController {
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','MANAGER','ADMIN')")
     public ResponseEntity<ApiResponse<List<VoucherDTO>>> findAllByUserId(@PathVariable String userId) {
         List<VoucherDTO> vouchers = voucherService.findAllByUserId(userId);
         return ResponseEntity.ok(new ApiResponse<>("OK", "Vouchers are successfully found", vouchers));
@@ -55,7 +54,7 @@ public class VoucherRestController {
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<VoucherDTO>> updateVoucher(@PathVariable String id,@Valid @RequestBody VoucherDTO voucherDTO) {
+    public ResponseEntity<ApiResponse<VoucherDTO>> updateVoucher(@PathVariable String id, @Valid @RequestBody VoucherDTO voucherDTO) {
         VoucherDTO voucher = voucherService.update(id, voucherDTO);
         return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher is successfully updated", voucher));
     }
@@ -74,12 +73,13 @@ public class VoucherRestController {
     }
 
     @GetMapping("/price")
-    public ResponseEntity<ApiResponse<List<VoucherDTO>>> findAllByPriceRange(@RequestParam BigDecimal min,@RequestParam BigDecimal max) {
+    public ResponseEntity<ApiResponse<List<VoucherDTO>>> findAllByPriceRange(@RequestParam BigDecimal min, @RequestParam BigDecimal max) {
         List<VoucherDTO> vouchers = voucherService.findAllByPriceRange(min, max);
         return ResponseEntity.ok(new ApiResponse<>("OK", "Vouchers are successfully found", vouchers));
     }
 
     @GetMapping("/user/{userId}/status")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN') or #userId == authentication.principal.user.id")
     public ResponseEntity<ApiResponse<List<VoucherDTO>>> findAllByUserIdAndStatus(@PathVariable UUID userId, @RequestParam VoucherStatus status) {
         List<VoucherDTO> vouchers = voucherService.findAllByUserIdAndStatus(userId, status);
         return ResponseEntity.ok(new ApiResponse<>("OK", "Vouchers are successfully found", vouchers));
@@ -104,5 +104,13 @@ public class VoucherRestController {
         VoucherDTO voucher = voucherOrderService.order(id, principal.getUser().getId());
         return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher is successfully ordered", voucher));
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PageResponseDTO<VoucherDTO>>> search(@ModelAttribute VoucherFilterDTO filter, Pageable pageable) {
+        PageResponseDTO<VoucherDTO> page = voucherService.search(filter,pageable);
+        return ResponseEntity.ok(new ApiResponse<>("OK", "Vouchers are successfully found", page));
+    }
+
+
 
 }

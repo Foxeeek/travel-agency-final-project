@@ -11,143 +11,143 @@ public class VoucherDTO {
 
     private String id;
 
-	@NotBlank(message = "must not be blank")
+    @NotBlank(message = "must not be blank")
     private String title;
-	@NotBlank(message = "must not be blank")
+    @NotBlank(message = "must not be blank")
     private String description;
 
-	@Positive(message = "must be greater than 0")
-	@NotNull(message = "is required")
+    @Positive(message = "must be greater than 0")
+    @NotNull(message = "is required")
     private Double price;
 
-	@NotBlank(message = "is required")
+    @NotBlank(message = "is required")
     private String tourType;
 
-	@NotBlank(message = "is required")
+    @NotBlank(message = "is required")
     private String transferType;
 
-	@NotBlank(message = "is required")
+    @NotBlank(message = "is required")
     private String hotelType;
 
-	@NotBlank(message = "is required")
+    @NotBlank(message = "is required")
     private String status;
 
-	@NotNull(message = "is required")
+    @NotNull(message = "is required")
     private LocalDate arrivalDate;
 
-	@NotNull(message = "is required")
+    @NotNull(message = "is required")
     private LocalDate evictionDate;
 
     private UUID userId;
 
-	@NotNull(message = "is required")
+    @NotNull(message = "is required")
     private Boolean isHot;
 
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
-
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
 
-	public String getDescription() {
-		return description;
-	}
+    public String getTitle() {
+        return title;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-
-	public Double getPrice() {
-		return price;
-	}
-
-	public void setPrice(Double price) {
-		this.price = price;
-	}
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
 
-	public String getTourType() {
-		return tourType;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public void setTourType(String tourType) {
-		this.tourType = tourType;
-	}
-
-
-	public String getTransferType() {
-		return transferType;
-	}
-
-	public void setTransferType(String transferType) {
-		this.transferType = transferType;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
 
-	public String getHotelType() {
-		return hotelType;
-	}
+    public Double getPrice() {
+        return price;
+    }
 
-	public void setHotelType(String hotelType) {
-		this.hotelType = hotelType;
-	}
-
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
+    public void setPrice(Double price) {
+        this.price = price;
+    }
 
 
-	public LocalDate getArrivalDate() {
-		return arrivalDate;
-	}
+    public String getTourType() {
+        return tourType;
+    }
 
-	public void setArrivalDate(LocalDate arrivalDate) {
-		this.arrivalDate = arrivalDate;
-	}
-
-
-	public LocalDate getEvictionDate() {
-		return evictionDate;
-	}
-
-	public void setEvictionDate(LocalDate evictionDate) {
-		this.evictionDate = evictionDate;
-	}
+    public void setTourType(String tourType) {
+        this.tourType = tourType;
+    }
 
 
-	public UUID getUserId() {
-		return userId;
-	}
+    public String getTransferType() {
+        return transferType;
+    }
 
-	public void setUserId(UUID userId) {
-		this.userId = userId;
-	}
+    public void setTransferType(String transferType) {
+        this.transferType = transferType;
+    }
 
 
-	public Boolean getIsHot() {
-		return isHot;
-	}
+    public String getHotelType() {
+        return hotelType;
+    }
 
-	public void setIsHot(Boolean isHot) {
-		this.isHot = isHot;
-	}
-    
+    public void setHotelType(String hotelType) {
+        this.hotelType = hotelType;
+    }
+
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+
+    public LocalDate getArrivalDate() {
+        return arrivalDate;
+    }
+
+    public void setArrivalDate(LocalDate arrivalDate) {
+        this.arrivalDate = arrivalDate;
+    }
+
+
+    public LocalDate getEvictionDate() {
+        return evictionDate;
+    }
+
+    public void setEvictionDate(LocalDate evictionDate) {
+        this.evictionDate = evictionDate;
+    }
+
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+
+    public Boolean getIsHot() {
+        return isHot;
+    }
+
+    public void setIsHot(Boolean isHot) {
+        this.isHot = isHot;
+    }
+
 }

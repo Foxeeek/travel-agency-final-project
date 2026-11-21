@@ -10,15 +10,15 @@ import com.epam.finaltask.model.Voucher;
 import com.epam.finaltask.model.VoucherStatus;
 import com.epam.finaltask.repository.UserRepository;
 import com.epam.finaltask.repository.VoucherRepository;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service
 @Slf4j
-public class VoucherOrderServiceImpl implements VoucherOrderService{
+public class VoucherOrderServiceImpl implements VoucherOrderService {
 
     private final VoucherMapper voucherMapper;
     private final VoucherRepository voucherRepository;
@@ -30,7 +30,7 @@ public class VoucherOrderServiceImpl implements VoucherOrderService{
         this.voucherRepository = voucherRepository;
     }
 
-    private Voucher voucherById(UUID id){
+    private Voucher voucherById(UUID id) {
         return voucherRepository.findById(id)
                 .orElseThrow(() -> {
                             log.warn("Voucher with id {} not found", id);
@@ -39,7 +39,7 @@ public class VoucherOrderServiceImpl implements VoucherOrderService{
                 );
     }
 
-    private User userById(UUID id){
+    private User userById(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> {
                             log.warn("User with id {} not found", id);
@@ -55,15 +55,15 @@ public class VoucherOrderServiceImpl implements VoucherOrderService{
         User user = userById(userId);
 
 
-        if (voucher.getUser() != null){
+        if (voucher.getUser() != null) {
             log.warn("Voucher {} is already ordered by another user", id);
             throw new ConflictException("Voucher " + id + " is already ordered");
         }
-        if (voucher.getStatus() != VoucherStatus.REGISTERED){
+        if (voucher.getStatus() != VoucherStatus.REGISTERED) {
             log.warn("Voucher {} has status {}, only REGISTERED can be ordered", id, voucher.getStatus());
             throw new ConflictException("Only REGISTERED voucher can be ordered");
         }
-        if (user.getBalance().compareTo(voucher.getPrice()) < 0){
+        if (user.getBalance().compareTo(voucher.getPrice()) < 0) {
             log.warn("User {} has insufficient balance for voucher {}", userId, id);
             throw new ConflictException("Insufficient balance");
         }
@@ -84,20 +84,20 @@ public class VoucherOrderServiceImpl implements VoucherOrderService{
     public VoucherDTO changeStatus(UUID id, VoucherStatus status) {
         Voucher voucher = voucherById(id);
 
-        if (voucher.getUser() == null){
+        if (voucher.getUser() == null) {
             log.warn("Voucher {} has no user, status cannot be changed", id);
             throw new ConflictException("Voucher " + id + " has no user");
         }
-        if (voucher.getStatus() != VoucherStatus.REGISTERED){
+        if (voucher.getStatus() != VoucherStatus.REGISTERED) {
             log.warn("Voucher {} has status {}, only REGISTERED can be changed", id, voucher.getStatus());
             throw new ConflictException("Only REGISTERED voucher can change its status");
         }
-        if (!status.equals(VoucherStatus.PAID) && !status.equals(VoucherStatus.CANCELED)){
+        if (!status.equals(VoucherStatus.PAID) && !status.equals(VoucherStatus.CANCELED)) {
             log.warn("Voucher {} cannot be moved to status {}", id, status);
             throw new ConflictException("Status can only be changed to PAID or CANCELED");
         }
 
-        if (status == VoucherStatus.CANCELED){
+        if (status == VoucherStatus.CANCELED) {
             User user = voucher.getUser();
             user.setBalance(user.getBalance().add(voucher.getPrice()));
             userRepository.save(user);

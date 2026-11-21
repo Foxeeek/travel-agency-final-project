@@ -28,18 +28,18 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
     }
 
-    private User userById(UUID uuid){
+    private User userById(UUID uuid) {
         return userRepository.findById(uuid)
-                .orElseThrow( () -> {
+                .orElseThrow(() -> {
                             log.warn("User with id {} not found", uuid);
                             return new NotFoundException("User " + uuid + " not found");
                         }
                 );
     }
 
-    private User userByUsername(String username){
+    private User userByUsername(String username) {
         return userRepository.findUserByUsername(username)
-                .orElseThrow( () -> {
+                .orElseThrow(() -> {
                             log.warn("User {} not found", username);
                             return new NotFoundException("User " + username + " not found");
                         }
@@ -69,13 +69,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO changeAccountStatus(UserDTO userDTO) {
-        User user = userById(UUID.fromString(userDTO.getId()));
-        User fromDTO = userMapper.toUser(userDTO);
-        user.setActive(fromDTO.isActive());
+    public UserResponseDTO changeAccountStatus(UUID id, boolean status) {
+        User user = userById(id);
+        user.setActive(status);
         userRepository.save(user);
-        log.info("Account status of user {} changed, active={}", userDTO.getUsername(), userDTO.isActive());
-        return userMapper.toUserDTO(user);
+        log.info("Account status of user {} changed, active={}", user.getUsername(), user.isActive());
+        return userMapper.toUserResponseDTO(user);
     }
 
     @Override
@@ -94,10 +93,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO updateProfile(UUID id, UserUpdateRequestDTO request) {
         User user = userById(id);
-        if (request.getPhoneNumber() != null){
+        if (request.getPhoneNumber() != null) {
             user.setPhoneNumber(request.getPhoneNumber());
         }
-        if (request.getPassword() != null){
+        if (request.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         userRepository.save(user);

@@ -12,7 +12,15 @@ public class ApiResponse<T> {
         this.results = results;
     }
 
-    public String getStatusCode() { return statusCode; }
-    public String getStatusMessage() { return statusMessage; }
-    public T getResults() { return results; }
+    public String getStatusCode() {
+        return statusCode;
+    }
+
+    public String getStatusMessage() {
+        return statusMessage;
+    }
+
+    public T getResults() {
+        return results;
+    }
 }

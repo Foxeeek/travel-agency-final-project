@@ -39,7 +39,7 @@ public class VoucherOrderServiceImplTest {
     @InjectMocks
     private VoucherOrderServiceImpl voucherOrderService;
 
-    private VoucherDTO buildVoucherDTO(){
+    private VoucherDTO buildVoucherDTO() {
         VoucherDTO voucherDTO = new VoucherDTO();
         voucherDTO.setTitle("Hello");
         voucherDTO.setDescription("New description");
@@ -53,7 +53,8 @@ public class VoucherOrderServiceImplTest {
         voucherDTO.setIsHot(true);
         return voucherDTO;
     }
-    private Voucher buildVoucher(){
+
+    private Voucher buildVoucher() {
         Voucher voucher = new Voucher();
         voucher.setTitle("Hello");
         voucher.setDescription("New description");
@@ -168,7 +169,7 @@ public class VoucherOrderServiceImplTest {
         }
 
         @Test
-        void order_VoucherNotFound_ThrowsNotFoundException(){
+        void order_VoucherNotFound_ThrowsNotFoundException() {
             UUID voucherId = UUID.randomUUID();
             UUID userid = UUID.randomUUID();
 
@@ -176,11 +177,11 @@ public class VoucherOrderServiceImplTest {
 
             assertThrows(NotFoundException.class, () -> voucherOrderService.order(voucherId, userid));
 
-            verify(voucherRepository,never()).save(any());
+            verify(voucherRepository, never()).save(any());
         }
 
         @Test
-        void order_UserNotFound_ThrowsNotFoundException(){
+        void order_UserNotFound_ThrowsNotFoundException() {
             UUID voucherId = UUID.randomUUID();
             UUID userid = UUID.randomUUID();
 
@@ -192,15 +193,15 @@ public class VoucherOrderServiceImplTest {
 
             assertThrows(NotFoundException.class, () -> voucherOrderService.order(voucherId, userid));
 
-            verify(voucherRepository,never()).save(any());
+            verify(voucherRepository, never()).save(any());
         }
     }
 
     @Nested
-    class ChangeStatusTest{
+    class ChangeStatusTest {
 
         @Test
-        void changeStatus_RegisteredWithUser_ToPaid_SavesPaid(){
+        void changeStatus_RegisteredWithUser_ToPaid_SavesPaid() {
 
             UUID id = UUID.randomUUID();
             User user = new User();
@@ -217,7 +218,7 @@ public class VoucherOrderServiceImplTest {
             when(voucherMapper.toVoucherDTO(voucher))
                     .thenReturn(voucherDTO);
 
-            VoucherDTO result = voucherOrderService.changeStatus(id,status);
+            VoucherDTO result = voucherOrderService.changeStatus(id, status);
 
             ArgumentCaptor<Voucher> captor =
                     ArgumentCaptor.forClass(Voucher.class);
@@ -226,11 +227,11 @@ public class VoucherOrderServiceImplTest {
             verify(userRepository, never()).save(any());
 
             Assertions.assertSame(voucherDTO, result);
-            Assertions.assertEquals(VoucherStatus.PAID,captor.getValue().getStatus());
+            Assertions.assertEquals(VoucherStatus.PAID, captor.getValue().getStatus());
         }
 
         @Test
-        void changeStatus_RegisteredWithUser_ToCanceled_SavesCanceled(){
+        void changeStatus_RegisteredWithUser_ToCanceled_SavesCanceled() {
 
             UUID id = UUID.randomUUID();
             User user = new User();
@@ -248,7 +249,7 @@ public class VoucherOrderServiceImplTest {
             when(voucherMapper.toVoucherDTO(voucher))
                     .thenReturn(voucherDTO);
 
-            VoucherDTO result = voucherOrderService.changeStatus(id,status);
+            VoucherDTO result = voucherOrderService.changeStatus(id, status);
 
             ArgumentCaptor<Voucher> captor =
                     ArgumentCaptor.forClass(Voucher.class);
@@ -256,13 +257,13 @@ public class VoucherOrderServiceImplTest {
             verify(voucherRepository).save(captor.capture());
 
             Assertions.assertSame(voucherDTO, result);
-            Assertions.assertEquals(VoucherStatus.CANCELED,captor.getValue().getStatus());
+            Assertions.assertEquals(VoucherStatus.CANCELED, captor.getValue().getStatus());
             Assertions.assertEquals(0, BigDecimal.valueOf(1000).compareTo(user.getBalance()));
 
         }
 
         @Test
-        void changeStatus_VoucherNotFound_ThrowsNotFoundException(){
+        void changeStatus_VoucherNotFound_ThrowsNotFoundException() {
             UUID id = UUID.randomUUID();
 
             VoucherStatus status = VoucherStatus.CANCELED;
@@ -271,11 +272,11 @@ public class VoucherOrderServiceImplTest {
 
             assertThrows(NotFoundException.class, () -> voucherOrderService.changeStatus(id, status));
 
-            verify(voucherRepository,never()).save(any());
+            verify(voucherRepository, never()).save(any());
         }
 
         @Test
-        void changeStatus_VoucherWithoutUser_ThrowsConflictException(){
+        void changeStatus_VoucherWithoutUser_ThrowsConflictException() {
             UUID id = UUID.randomUUID();
 
             Voucher voucher = buildVoucher();
@@ -288,11 +289,11 @@ public class VoucherOrderServiceImplTest {
 
             assertThrows(ConflictException.class, () -> voucherOrderService.changeStatus(id, status));
 
-            verify(voucherRepository,never()).save(any());
+            verify(voucherRepository, never()).save(any());
         }
 
         @Test
-        void changeStatus_AlreadyPaid_ThrowsConflictException(){
+        void changeStatus_AlreadyPaid_ThrowsConflictException() {
             UUID id = UUID.randomUUID();
             User user = new User();
             user.setId(id);
@@ -308,10 +309,11 @@ public class VoucherOrderServiceImplTest {
 
             assertThrows(ConflictException.class, () -> voucherOrderService.changeStatus(id, status));
 
-            verify(voucherRepository,never()).save(any());
+            verify(voucherRepository, never()).save(any());
         }
+
         @Test
-        void changeStatus_ToRegistered_ThrowsConflictException(){
+        void changeStatus_ToRegistered_ThrowsConflictException() {
             UUID id = UUID.randomUUID();
             User user = new User();
             user.setId(id);
@@ -327,7 +329,7 @@ public class VoucherOrderServiceImplTest {
 
             assertThrows(ConflictException.class, () -> voucherOrderService.changeStatus(id, status));
 
-            verify(voucherRepository,never()).save(any());
+            verify(voucherRepository, never()).save(any());
         }
 
 

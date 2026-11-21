@@ -1,22 +1,31 @@
 package com.epam.finaltask.service;
 
+import com.epam.finaltask.dto.PageResponseDTO;
 import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.dto.VoucherFilterDTO;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
 import com.epam.finaltask.repository.VoucherRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
 @Service
 public class VoucherServiceImpl implements VoucherService {
 
+    Set<String> SORT_FIELDS = Set.of("price", "title", "arrivalDate", "evictionDate", "tourType", "hotelType", "transferType", "status");
     private final VoucherMapper voucherMapper;
     private final VoucherRepository voucherRepository;
 
@@ -25,7 +34,7 @@ public class VoucherServiceImpl implements VoucherService {
         this.voucherRepository = voucherRepository;
     }
 
-    private Voucher voucherById(UUID id){
+    private Voucher voucherById(UUID id) {
         return voucherRepository.findById(id)
                 .orElseThrow(() -> {
                             log.warn("Voucher with id {} not found", id);
@@ -34,7 +43,7 @@ public class VoucherServiceImpl implements VoucherService {
                 );
     }
 
-    private List<VoucherDTO> toDtoList(List<Voucher> vouchers){
+    private List<VoucherDTO> toDtoList(List<Voucher> vouchers) {
         return vouchers.stream()
                 .map(voucherMapper::toVoucherDTO)
                 .toList();
@@ -167,5 +176,29 @@ public class VoucherServiceImpl implements VoucherService {
         return vouchers;
     }
 
+
+    @Override
+    public PageResponseDTO<VoucherDTO> search(VoucherFilterDTO filter, Pageable pageable) {
+        Specification<Voucher> specification = VoucherSpecifications.fromFilter(filter);
+        checkSortFields(pageable.getSort());
+        Sort sort = Sort.by(Sort.Order.desc("isHot")).and(pageable.getSort());
+        Pageable sorted = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        Page<Voucher> page = voucherRepository.findAll(specification,sorted);
+        Page<VoucherDTO> dtoPage = page.map(voucherMapper::toVoucherDTO);
+
+        log.debug("Filtered");
+
+        return new PageResponseDTO<>(dtoPage);
+    }
+
+    private void checkSortFields(Sort sort){
+        for (Sort.Order order : sort){
+            if (!SORT_FIELDS.contains(order.getProperty())){
+                log.warn("Unsupported sort field: {}", order.getProperty());
+                throw new IllegalArgumentException("Unsupported sort field: " + order.getProperty());
+            }
+        }
+    }
 
 }

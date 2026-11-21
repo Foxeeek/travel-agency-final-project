@@ -17,16 +17,16 @@ import java.util.Date;
 
 @Service
 public class JwtService {
-        private final Key key;
-        private final long expiration;
+    private final Key key;
+    private final long expiration;
 
-        public JwtService(@Value("${application.security.jwt.secret-key}") String secret,
-                          @Value("${application.security.jwt.expiration}") long expiration) {
-            this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
-            this.expiration = expiration;
-        }
+    public JwtService(@Value("${application.security.jwt.secret-key}") String secret,
+                      @Value("${application.security.jwt.expiration}") long expiration) {
+        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+        this.expiration = expiration;
+    }
 
-    public String generateToken(UserDetails userDetails){
+    public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .claim("role", userDetails.getAuthorities().iterator().next().getAuthority())
@@ -35,28 +35,29 @@ public class JwtService {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
-    private Claims extractAllClaims(String token){
 
-            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-        }
+    private Claims extractAllClaims(String token) {
 
-        public String extractUsername(String token){
-            return extractAllClaims(token).getSubject();
-        }
-
-        public String  extractRole(String token){
-            return extractAllClaims(token).get("role",String.class);
-        }
-
-        public boolean isTokenValid(String token){
-            try{
-                extractAllClaims(token);
-                return true;
-            } catch (JwtException | IllegalArgumentException e) {
-                return false;
-            }
-        }
-
+        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
+
+    public String extractUsername(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            extractAllClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+}
 
 

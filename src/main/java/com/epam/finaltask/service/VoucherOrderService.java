@@ -7,5 +7,6 @@ import java.util.UUID;
 
 public interface VoucherOrderService {
     VoucherDTO order(UUID id, UUID userId);
+
     VoucherDTO changeStatus(UUID id, VoucherStatus status);
 }

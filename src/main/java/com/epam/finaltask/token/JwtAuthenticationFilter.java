@@ -21,6 +21,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+
     public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
@@ -30,40 +31,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = extractToken(request);
 
-        if (token == null || !jwtService.isTokenValid(token)){
+        if (token == null || !jwtService.isTokenValid(token)) {
             filterChain.doFilter(request, response);
             return;
         }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(jwtService.extractUsername(token));
 
-        if (!userDetails.isEnabled()){
+        if (!userDetails.isEnabled()) {
             filterChain.doFilter(request, response);
             return;
         }
 
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 
-    private String extractToken(HttpServletRequest request){
+    private String extractToken(HttpServletRequest request) {
 
         Cookie[] cookies = request.getCookies();
         String header = request.getHeader("Authorization");
 
-        if (cookies != null){
-            for (Cookie cookie : cookies){
-                if (COOKIE_NAME.equals(cookie.getName())){
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (COOKIE_NAME.equals(cookie.getName())) {
                     return cookie.getValue();
                 }
             }
         }
 
-        if ( header != null && header.startsWith("Bearer ")){
+        if (header != null && header.startsWith("Bearer ")) {
             return header.substring(7);
         }
 

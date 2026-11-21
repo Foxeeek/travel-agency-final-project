@@ -24,7 +24,6 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.util.AssertionErrors.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 public class VoucherServiceImplTest {
@@ -38,7 +37,7 @@ public class VoucherServiceImplTest {
     @InjectMocks
     private VoucherServiceImpl voucherService;
 
-    private VoucherDTO buildVoucherDTO(){
+    private VoucherDTO buildVoucherDTO() {
         VoucherDTO voucherDTO = new VoucherDTO();
         voucherDTO.setTitle("Hello");
         voucherDTO.setDescription("New description");
@@ -52,7 +51,8 @@ public class VoucherServiceImplTest {
         voucherDTO.setIsHot(true);
         return voucherDTO;
     }
-    private Voucher buildVoucher(){
+
+    private Voucher buildVoucher() {
         Voucher voucher = new Voucher();
         voucher.setTitle("Hello");
         voucher.setDescription("New description");
@@ -66,8 +66,9 @@ public class VoucherServiceImplTest {
         voucher.setIsHot(true);
         return voucher;
     }
+
     @Test
-    void create_ValidVoucher_SavesAndReturnsDto(){
+    void create_ValidVoucher_SavesAndReturnsDto() {
         UUID id = UUID.randomUUID();
 
         Voucher voucher = new Voucher();
@@ -90,84 +91,86 @@ public class VoucherServiceImplTest {
 
 
     }
+
     @Nested
-    class UpdateTest{
+    class UpdateTest {
 
 
-    @Test
-    void update_VoucherNotFound_ThrowsNotFoundException(){
-//        Given
-        UUID id = UUID.randomUUID();
-        VoucherDTO voucherDTO = buildVoucherDTO();
-//        When
-        when(voucherRepository.findById(id)).thenReturn(Optional.empty());
-//        Then
-        assertThrows(NotFoundException.class, () -> voucherService.update(id.toString(), voucherDTO));
-
-        verify(voucherRepository, never()).save(any());
-    }
-
-    @Test
-    void update_ExistingVoucher_UpdatesAllFieldsAndSaves(){
-        UUID id = UUID.randomUUID();
-        Voucher voucher = new Voucher();
-        voucher.setId(id);
-        VoucherDTO voucherDTO = buildVoucherDTO();
-        voucherDTO.setTransferType("PLANE");
-
-        when(voucherRepository.findById(id))
-                .thenReturn(Optional.of(voucher));
-
-        when(voucherMapper.toVoucherDTO(any(Voucher.class)))
-                .thenReturn(voucherDTO);
-
-        VoucherDTO result = voucherService.update(id.toString(), voucherDTO);
-
-        ArgumentCaptor<Voucher> captor =
-                ArgumentCaptor.forClass(Voucher.class);
-
-        verify(voucherRepository).save(captor.capture());
-
-        Assertions.assertEquals("Hello", captor.getValue().getTitle());
-        Assertions.assertEquals("New description", captor.getValue().getDescription());
-        Assertions.assertEquals(0, new BigDecimal("850.00").compareTo(captor.getValue().getPrice()));
-
-        Assertions.assertEquals(TourType.ADVENTURE,captor.getValue().getTourType());
-        Assertions.assertEquals(HotelType.FIVE_STARS,captor.getValue().getHotelType());
-        Assertions.assertEquals(VoucherStatus.REGISTERED,captor.getValue().getStatus());
-        Assertions.assertEquals(TransferType.PLANE,captor.getValue().getTransferType());
-        Assertions.assertEquals(LocalDate.of(2027, 7, 10),captor.getValue().getArrivalDate());
-        Assertions.assertEquals(LocalDate.of(2027, 7, 17),captor.getValue().getEvictionDate());
-
-        Assertions.assertTrue(captor.getValue().getIsHot());
-
-
-        Assertions.assertNotNull(result);
-    }
-
-    @Test
-    void update_UnknownTransferType_ThrowsIllegalArgumentException(){
-        UUID id = UUID.randomUUID();
-
-        Voucher voucher = new Voucher();
-        voucher.setId(id);
-
-        VoucherDTO voucherDTO = buildVoucherDTO();
-
-        when(voucherRepository.findById(id))
-                .thenReturn(Optional.of(voucher));
-
-
-        assertThrows(IllegalArgumentException.class, () -> voucherService.update(id.toString(),voucherDTO));
-
-        verify(voucherRepository).findById(id);
-        verify(voucherRepository, never()).save(any(Voucher.class));
-    }
-    }
-    @Nested
-    class DeleteTest{
         @Test
-        void delete_ExistingVoucher_DeletesVoucher(){
+        void update_VoucherNotFound_ThrowsNotFoundException() {
+//        Given
+            UUID id = UUID.randomUUID();
+            VoucherDTO voucherDTO = buildVoucherDTO();
+//        When
+            when(voucherRepository.findById(id)).thenReturn(Optional.empty());
+//        Then
+            assertThrows(NotFoundException.class, () -> voucherService.update(id.toString(), voucherDTO));
+
+            verify(voucherRepository, never()).save(any());
+        }
+
+        @Test
+        void update_ExistingVoucher_UpdatesAllFieldsAndSaves() {
+            UUID id = UUID.randomUUID();
+            Voucher voucher = new Voucher();
+            voucher.setId(id);
+            VoucherDTO voucherDTO = buildVoucherDTO();
+            voucherDTO.setTransferType("PLANE");
+
+            when(voucherRepository.findById(id))
+                    .thenReturn(Optional.of(voucher));
+
+            when(voucherMapper.toVoucherDTO(any(Voucher.class)))
+                    .thenReturn(voucherDTO);
+
+            VoucherDTO result = voucherService.update(id.toString(), voucherDTO);
+
+            ArgumentCaptor<Voucher> captor =
+                    ArgumentCaptor.forClass(Voucher.class);
+
+            verify(voucherRepository).save(captor.capture());
+
+            Assertions.assertEquals("Hello", captor.getValue().getTitle());
+            Assertions.assertEquals("New description", captor.getValue().getDescription());
+            Assertions.assertEquals(0, new BigDecimal("850.00").compareTo(captor.getValue().getPrice()));
+
+            Assertions.assertEquals(TourType.ADVENTURE, captor.getValue().getTourType());
+            Assertions.assertEquals(HotelType.FIVE_STARS, captor.getValue().getHotelType());
+            Assertions.assertEquals(VoucherStatus.REGISTERED, captor.getValue().getStatus());
+            Assertions.assertEquals(TransferType.PLANE, captor.getValue().getTransferType());
+            Assertions.assertEquals(LocalDate.of(2027, 7, 10), captor.getValue().getArrivalDate());
+            Assertions.assertEquals(LocalDate.of(2027, 7, 17), captor.getValue().getEvictionDate());
+
+            Assertions.assertTrue(captor.getValue().getIsHot());
+
+
+            Assertions.assertNotNull(result);
+        }
+
+        @Test
+        void update_UnknownTransferType_ThrowsIllegalArgumentException() {
+            UUID id = UUID.randomUUID();
+
+            Voucher voucher = new Voucher();
+            voucher.setId(id);
+
+            VoucherDTO voucherDTO = buildVoucherDTO();
+
+            when(voucherRepository.findById(id))
+                    .thenReturn(Optional.of(voucher));
+
+
+            assertThrows(IllegalArgumentException.class, () -> voucherService.update(id.toString(), voucherDTO));
+
+            verify(voucherRepository).findById(id);
+            verify(voucherRepository, never()).save(any(Voucher.class));
+        }
+    }
+
+    @Nested
+    class DeleteTest {
+        @Test
+        void delete_ExistingVoucher_DeletesVoucher() {
             UUID voucherId = UUID.randomUUID();
 
             Voucher voucher = new Voucher();
@@ -180,8 +183,9 @@ public class VoucherServiceImplTest {
 
             verify(voucherRepository).delete(voucher);
         }
+
         @Test
-        void delete_VoucherNotFound_ThrowsNotFoundException(){
+        void delete_VoucherNotFound_ThrowsNotFoundException() {
             //        Given
             UUID id = UUID.randomUUID();
             VoucherDTO voucherDTO = new VoucherDTO();
@@ -190,9 +194,10 @@ public class VoucherServiceImplTest {
 //        Then
             assertThrows(NotFoundException.class, () -> voucherService.delete(id.toString()));
 
-            verify(voucherRepository, never()).delete(any());
+            verify(voucherRepository, never()).delete(any(Voucher.class));
         }
     }
+
     @Nested
     class ChangeHotStatusTest {
         @Test
@@ -223,8 +228,9 @@ public class VoucherServiceImplTest {
 
             Assertions.assertTrue(voucher.getIsHot());
         }
+
         @Test
-        void changeHotStatus_VoucherNotFound_ThrowsNotFoundException(){
+        void changeHotStatus_VoucherNotFound_ThrowsNotFoundException() {
             UUID voucherId = UUID.randomUUID();
             VoucherDTO voucherDTO = buildVoucherDTO();
 
@@ -232,13 +238,14 @@ public class VoucherServiceImplTest {
 
             assertThrows(NotFoundException.class, () -> voucherService.changeHotStatus(voucherId.toString(), voucherDTO));
 
-            verify(voucherRepository,never()).save(any());
+            verify(voucherRepository, never()).save(any());
         }
     }
+
     @Nested
-    class FindAllTest{
+    class FindAllTest {
         @Test
-        void findAll_TwoVouchersExist_ReturnsTwoDtos(){
+        void findAll_TwoVouchersExist_ReturnsTwoDtos() {
             List<Voucher> vouchers = new ArrayList<>();
 
             Voucher voucher1 = buildVoucher();
@@ -255,13 +262,13 @@ public class VoucherServiceImplTest {
             when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
 
             List<VoucherDTO> result = voucherService.findAll();
-            Assertions.assertEquals(List.of(dto1,dto2), result);
+            Assertions.assertEquals(List.of(dto1, dto2), result);
 
             verify(voucherRepository).findAll();
         }
 
         @Test
-        void findAllByUserId_UserHasTwoVouchers_ReturnsTwoDtos(){
+        void findAllByUserId_UserHasTwoVouchers_ReturnsTwoDtos() {
             UUID userId = UUID.randomUUID();
             List<Voucher> vouchers = new ArrayList<>();
 
@@ -279,13 +286,13 @@ public class VoucherServiceImplTest {
             when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
 
             List<VoucherDTO> result = voucherService.findAllByUserId(userId.toString());
-            Assertions.assertEquals(List.of(dto1,dto2), result);
+            Assertions.assertEquals(List.of(dto1, dto2), result);
 
             verify(voucherRepository).findAllByUserId(userId);
         }
 
         @Test
-        void findAllByTourType_TwoVouchersMatch_ReturnsTwoDtos(){
+        void findAllByTourType_TwoVouchersMatch_ReturnsTwoDtos() {
             TourType tourType = TourType.ADVENTURE;
 
             List<Voucher> vouchers = new ArrayList<>();
@@ -304,13 +311,13 @@ public class VoucherServiceImplTest {
             when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
 
             List<VoucherDTO> result = voucherService.findAllByTourType(tourType);
-            Assertions.assertEquals(List.of(dto1,dto2), result);
+            Assertions.assertEquals(List.of(dto1, dto2), result);
 
             verify(voucherRepository).findAllByTourType(tourType);
         }
 
         @Test
-        void findAllByTransferType_TwoVouchersMatch_ReturnsTwoDtos(){
+        void findAllByTransferType_TwoVouchersMatch_ReturnsTwoDtos() {
             TransferType transferType = TransferType.PLANE;
 
             List<Voucher> vouchers = new ArrayList<>();
@@ -329,13 +336,13 @@ public class VoucherServiceImplTest {
             when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
 
             List<VoucherDTO> result = voucherService.findAllByTransferType(transferType.toString());
-            Assertions.assertEquals(List.of(dto1,dto2), result);
+            Assertions.assertEquals(List.of(dto1, dto2), result);
 
             verify(voucherRepository).findAllByTransferType(transferType);
         }
 
         @Test
-        void findAllByPrice_TwoVouchersMatch_ReturnsTwoDtos(){
+        void findAllByPrice_TwoVouchersMatch_ReturnsTwoDtos() {
             Double price = 850.00;
 
             List<Voucher> vouchers = new ArrayList<>();
@@ -354,13 +361,13 @@ public class VoucherServiceImplTest {
             when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
 
             List<VoucherDTO> result = voucherService.findAllByPrice(price);
-            Assertions.assertEquals(List.of(dto1,dto2), result);
+            Assertions.assertEquals(List.of(dto1, dto2), result);
 
             verify(voucherRepository).findAllByPrice(price);
         }
 
         @Test
-        void findAllByHotelType_TwoVouchersMatch_ReturnsTwoDtos(){
+        void findAllByHotelType_TwoVouchersMatch_ReturnsTwoDtos() {
             HotelType hotelType = HotelType.FIVE_STARS;
 
             List<Voucher> vouchers = new ArrayList<>();
@@ -379,13 +386,13 @@ public class VoucherServiceImplTest {
             when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
 
             List<VoucherDTO> result = voucherService.findAllByHotelType(hotelType);
-            Assertions.assertEquals(List.of(dto1,dto2), result);
+            Assertions.assertEquals(List.of(dto1, dto2), result);
 
             verify(voucherRepository).findAllByHotelType(hotelType);
         }
 
         @Test
-        void findAllHotFirst_VouchersExist_ReturnsDtosInRepositoryOrder(){
+        void findAllHotFirst_VouchersExist_ReturnsDtosInRepositoryOrder() {
             List<Voucher> vouchers = new ArrayList<>();
 
             Voucher voucher1 = buildVoucher();
@@ -413,7 +420,7 @@ public class VoucherServiceImplTest {
         }
 
         @Test
-        void findAllByPriceRange_VouchersInRange_ReturnsMatchingDtos(){
+        void findAllByPriceRange_VouchersInRange_ReturnsMatchingDtos() {
             List<Voucher> vouchers = new ArrayList<>();
 
             Voucher voucher1 = buildVoucher();
@@ -432,19 +439,19 @@ public class VoucherServiceImplTest {
             VoucherDTO dto2 = new VoucherDTO();
 
 
-            when(voucherRepository.findAllByPriceRange(new BigDecimal(400),new BigDecimal(1000))).thenReturn(List.of(voucher1,voucher2));
+            when(voucherRepository.findAllByPriceRange(new BigDecimal(400), new BigDecimal(1000))).thenReturn(List.of(voucher1, voucher2));
             when(voucherMapper.toVoucherDTO(voucher1)).thenReturn(dto1);
             when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
 
-            List<VoucherDTO> result = voucherService.findAllByPriceRange(new BigDecimal(400),new BigDecimal(1000));
+            List<VoucherDTO> result = voucherService.findAllByPriceRange(new BigDecimal(400), new BigDecimal(1000));
 
-            Assertions.assertEquals(List.of(dto1,dto2), result);
+            Assertions.assertEquals(List.of(dto1, dto2), result);
 
-            verify(voucherRepository).findAllByPriceRange(new BigDecimal(400),new BigDecimal(1000));
+            verify(voucherRepository).findAllByPriceRange(new BigDecimal(400), new BigDecimal(1000));
         }
 
         @Test
-        void findAllByUserIdAndStatus_UserHasPaidVouchers_ReturnsDtos(){
+        void findAllByUserIdAndStatus_UserHasPaidVouchers_ReturnsDtos() {
             UUID userId = UUID.randomUUID();
 
             VoucherStatus status = VoucherStatus.PAID;
@@ -466,47 +473,47 @@ public class VoucherServiceImplTest {
             VoucherDTO dto1 = new VoucherDTO();
             VoucherDTO dto2 = new VoucherDTO();
 
-            when(voucherRepository.findAllByUserIdAndStatus(userId,status)).thenReturn(vouchers);
+            when(voucherRepository.findAllByUserIdAndStatus(userId, status)).thenReturn(vouchers);
             when(voucherMapper.toVoucherDTO(voucher1)).thenReturn(dto1);
             when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
 
 
-            List<VoucherDTO> result = voucherService.findAllByUserIdAndStatus(userId,status);
+            List<VoucherDTO> result = voucherService.findAllByUserIdAndStatus(userId, status);
 
             Assertions.assertEquals(List.of(dto1, dto2), result);
 
-            verify(voucherRepository).findAllByUserIdAndStatus(userId,status);
+            verify(voucherRepository).findAllByUserIdAndStatus(userId, status);
         }
 
-    @Test
-    void findAllByArrivalPeriod_VouchersInPeriod_ReturnsMatchingDtos() {
-        List<Voucher> vouchers = new ArrayList<>();
+        @Test
+        void findAllByArrivalPeriod_VouchersInPeriod_ReturnsMatchingDtos() {
+            List<Voucher> vouchers = new ArrayList<>();
 
-        LocalDate from = LocalDate.of(2026,12,10);
-        LocalDate to = LocalDate.of(2026,12,19);
+            LocalDate from = LocalDate.of(2026, 12, 10);
+            LocalDate to = LocalDate.of(2026, 12, 19);
 
-        Voucher voucher1 = buildVoucher();
-        Voucher voucher2 = buildVoucher();
+            Voucher voucher1 = buildVoucher();
+            Voucher voucher2 = buildVoucher();
 
-        vouchers.add(voucher1);
-        vouchers.add(voucher2);
+            vouchers.add(voucher1);
+            vouchers.add(voucher2);
 
-        VoucherDTO dto1 = new VoucherDTO();
-        VoucherDTO dto2 = new VoucherDTO();
+            VoucherDTO dto1 = new VoucherDTO();
+            VoucherDTO dto2 = new VoucherDTO();
 
-        when(voucherRepository.findAllByArrivalPeriod(from, to)).thenReturn(vouchers);
-        when(voucherMapper.toVoucherDTO(voucher1)).thenReturn(dto1);
-        when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
-
-
-        List<VoucherDTO> result = voucherService.findAllByArrivalPeriod(from, to);
-
-        Assertions.assertEquals(List.of(dto1, dto2), result);
-
-        verify(voucherRepository).findAllByArrivalPeriod(from, to);
+            when(voucherRepository.findAllByArrivalPeriod(from, to)).thenReturn(vouchers);
+            when(voucherMapper.toVoucherDTO(voucher1)).thenReturn(dto1);
+            when(voucherMapper.toVoucherDTO(voucher2)).thenReturn(dto2);
 
 
-    }
+            List<VoucherDTO> result = voucherService.findAllByArrivalPeriod(from, to);
+
+            Assertions.assertEquals(List.of(dto1, dto2), result);
+
+            verify(voucherRepository).findAllByArrivalPeriod(from, to);
+
+
+        }
 
     }
 

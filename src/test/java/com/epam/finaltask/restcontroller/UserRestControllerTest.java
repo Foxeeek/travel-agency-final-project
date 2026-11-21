@@ -1,6 +1,6 @@
 package com.epam.finaltask.restcontroller;
 
-import com.epam.finaltask.dto.UserDTO;
+import com.epam.finaltask.dto.UserResponseDTO;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,10 +21,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -47,24 +48,21 @@ public class UserRestControllerTest {
     @WithMockUser(authorities = "ROLE_ADMIN")
     void changeUserStatus_AsAdmin_Returns200() throws Exception {
         UUID id = UUID.randomUUID();
-        UserDTO dto = new UserDTO();
+        UserResponseDTO dto = new UserResponseDTO();
 
-        when(userService.changeAccountStatus(any(UserDTO.class))).thenReturn(dto);
+        when(userService.changeAccountStatus(eq(id), eq(false))).thenReturn(dto);
 
         mockMvc.perform(patch("/api/users/{id}/status", id).contentType(MediaType.APPLICATION_JSON).content("{\"active\":false}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusMessage").value("User is successfully blocked"));
 
-        verify(userService).changeAccountStatus(any(UserDTO.class));
+        verify(userService).changeAccountStatus(eq(id), eq(false));
     }
 
     @Test
     @WithMockUser(authorities = "ROLE_MANAGER")
     void changeUserStatus_AsManager_Returns403() throws Exception {
         UUID id = UUID.randomUUID();
-        UserDTO dto = new UserDTO();
-
-        when(userService.changeAccountStatus(any(UserDTO.class))).thenReturn(dto);
 
         mockMvc.perform(patch("/api/users/{id}/status", id).contentType(MediaType.APPLICATION_JSON).content("{\"active\":false}"))
                 .andExpect(status().isForbidden())
@@ -77,9 +75,6 @@ public class UserRestControllerTest {
     @WithMockUser(authorities = "ROLE_ADMIN")
     void changeUserStatus_MissingActive_Returns400() throws Exception {
         UUID id = UUID.randomUUID();
-        UserDTO dto = new UserDTO();
-
-        when(userService.changeAccountStatus(any(UserDTO.class))).thenReturn(dto);
 
         mockMvc.perform(patch("/api/users/{id}/status", id).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest())
@@ -93,12 +88,12 @@ public class UserRestControllerTest {
     void changeUserStatus_UserNotFound_Returns404() throws Exception {
         UUID id = UUID.randomUUID();
 
-        when(userService.changeAccountStatus(any(UserDTO.class))).thenThrow(new NotFoundException("User not found"));
+        when(userService.changeAccountStatus(eq(id), eq(false))).thenThrow(new NotFoundException("User not found"));
 
         mockMvc.perform(patch("/api/users/{id}/status", id).contentType(MediaType.APPLICATION_JSON).content("{\"active\":false}"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusMessage").value("User not found"));
 
-        verify(userService).changeAccountStatus(any(UserDTO.class));
+        verify(userService).changeAccountStatus(eq(id), eq(false));
     }
 }
