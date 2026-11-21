@@ -2,6 +2,7 @@ package com.epam.finaltask.restcontroller;
 
 import com.epam.finaltask.dto.ApiResponse;
 import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.dto.VoucherStatusRequestDTO;
 import com.epam.finaltask.model.VoucherStatus;
 import com.epam.finaltask.service.VoucherService;
 import jakarta.validation.Valid;
@@ -85,5 +86,11 @@ public class VoucherRestController {
         return ResponseEntity.ok(new ApiResponse<>("OK", "Vouchers are successfully found", vouchers));
     }
 
+    @PatchMapping("/{id}/order-status")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+    public ResponseEntity<ApiResponse<VoucherDTO>> changeOrderStatus(@PathVariable UUID id, @Valid @RequestBody VoucherStatusRequestDTO request) {
+        VoucherDTO voucher = voucherService.changeStatus(id, request.getStatus());
+        return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher status is successfully changed", voucher));
+    }
 
 }

@@ -1,6 +1,7 @@
 package com.epam.finaltask.service;
 
 import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
@@ -114,6 +115,36 @@ public class VoucherServiceImpl implements VoucherService {
         voucherRepository.save(voucher);
 
         log.info("Voucher {} hot flag set to {}", voucher.getId(), voucher.getIsHot());
+
+        return voucherMapper.toVoucherDTO(voucher);
+
+    }
+
+    @Override
+    public VoucherDTO changeStatus(UUID id, VoucherStatus status) {
+        Voucher voucher = voucherRepository.findById(id)
+                .orElseThrow(() -> {
+                            log.warn("Voucher with id {} not found", id);
+                            return new NotFoundException("Voucher " + id + " not found");
+                        }
+                );
+
+        if (voucher.getUser() == null){
+            log.warn("Voucher {} has no user, status cannot be changed", id);
+            throw new ConflictException("Voucher " + id + " has no user");
+        }
+        if (voucher.getStatus() != VoucherStatus.REGISTERED){
+            log.warn("Voucher {} has status {}, only REGISTERED can be changed", id, voucher.getStatus());
+            throw new ConflictException("Only REGISTERED voucher can change its status");
+        }
+        if (!status.equals(VoucherStatus.PAID) && !status.equals(VoucherStatus.CANCELED)){
+            log.warn("Voucher {} cannot be moved to status {}", id, status);
+            throw new ConflictException("Status can only be changed to PAID or CANCELED");
+        }
+        voucher.setStatus(status);
+        voucherRepository.save(voucher);
+
+        log.info("Voucher {} status changed to {}", voucher.getId(), voucher.getStatus());
 
         return voucherMapper.toVoucherDTO(voucher);
 

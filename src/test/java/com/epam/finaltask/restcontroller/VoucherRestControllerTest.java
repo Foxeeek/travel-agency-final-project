@@ -1,26 +1,16 @@
 package com.epam.finaltask.restcontroller;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
+import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
+import com.epam.finaltask.model.HotelType;
+import com.epam.finaltask.model.TourType;
+import com.epam.finaltask.model.TransferType;
+import com.epam.finaltask.model.VoucherStatus;
+import com.epam.finaltask.service.VoucherService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,16 +28,20 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.epam.finaltask.dto.VoucherDTO;
-import com.epam.finaltask.model.HotelType;
-import com.epam.finaltask.model.TourType;
-import com.epam.finaltask.model.TransferType;
-import com.epam.finaltask.model.VoucherStatus;
-import com.epam.finaltask.service.VoucherService;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @ExtendWith(SpringExtension.class)
@@ -438,5 +432,85 @@ public class VoucherRestControllerTest {
             verifyNoInteractions(voucherService);
         }
 
+
     }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_MANAGER")
+    void changeOrderStatus_ValidData_Returns200() throws Exception{
+        UUID id = UUID.randomUUID();
+
+        String expectedStatusCode = "OK";
+        String expectedMessage= "Voucher status is successfully changed";
+
+        VoucherDTO dto = new VoucherDTO();
+
+        when(voucherService.changeStatus(id, VoucherStatus.PAID)).thenReturn(dto);
+
+        mockMvc.perform(patch("/api/vouchers/{id}/order-status", id).contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"PAID\"}"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+
+        verify(voucherService).changeStatus(id, VoucherStatus.PAID);
+    }
+    @Test
+    @WithMockUser(authorities = "ROLE_USER")
+    void changeOrderStatus_AsUser_Returns403() throws Exception{
+        UUID id = UUID.randomUUID();
+
+        String expectedStatusCode = "FORBIDDEN";
+        String expectedMessage= "Access denied";
+
+        mockMvc.perform(patch("/api/vouchers/{id}/order-status", id).contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"PAID\"}"))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+
+        verifyNoInteractions(voucherService);
+
+
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_MANAGER")
+    void changeOrderStatus_InvalidStatus_Returns400() throws Exception{
+        UUID id = UUID.randomUUID();
+
+        String expectedStatusCode = "BAD_REQUEST";
+        String expectedMessage= "Malformed request body";
+
+        VoucherDTO dto = new VoucherDTO();
+
+        mockMvc.perform(patch("/api/vouchers/{id}/order-status", id).contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"FOO\"}"))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
+                .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+
+        verifyNoInteractions(voucherService);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_MANAGER")
+    void changeOrderStatus_Conflict_Returns409() throws Exception{
+        UUID id = UUID.randomUUID();
+
+        when(voucherService.changeStatus(id, VoucherStatus.PAID)).thenThrow(new ConflictException("Voucher has no user"));
+
+        mockMvc.perform(patch("/api/vouchers/{id}/order-status", id).contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"PAID\"}"))
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.statusMessage").value("Voucher has no user"))
+                .andExpect(jsonPath("$.statusCode").value("CONFLICT"));
+
+        verify(voucherService).changeStatus(id, VoucherStatus.PAID);
+    }
+
 }

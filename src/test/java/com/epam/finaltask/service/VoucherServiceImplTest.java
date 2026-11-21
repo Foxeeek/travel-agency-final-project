@@ -2,6 +2,7 @@ package com.epam.finaltask.service;
 
 
 import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
@@ -572,4 +573,139 @@ public class VoucherServiceImplTest {
     }
 
     }
+
+    @Nested
+    class ChangeStatusTest{
+
+        @Test
+        void changeStatus_RegisteredWithUser_ToPaid_SavesPaid(){
+
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+            Voucher voucher = buildVoucher();
+            voucher.setId(id);
+            voucher.setUser(user);
+            VoucherDTO voucherDTO = buildVoucherDTO();
+            VoucherStatus status = VoucherStatus.PAID;
+
+            when(voucherRepository.findById(id))
+                    .thenReturn(Optional.of(voucher));
+
+            when(voucherMapper.toVoucherDTO(voucher))
+                    .thenReturn(voucherDTO);
+
+            VoucherDTO result = voucherService.changeStatus(id,status);
+
+            ArgumentCaptor<Voucher> captor =
+                    ArgumentCaptor.forClass(Voucher.class);
+
+            verify(voucherRepository).save(captor.capture());
+
+            Assertions.assertSame(voucherDTO, result);
+            Assertions.assertEquals(VoucherStatus.PAID,captor.getValue().getStatus());
+        }
+
+        @Test
+        void changeStatus_RegisteredWithUser_ToCanceled_SavesCanceled(){
+
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+            Voucher voucher = buildVoucher();
+            voucher.setId(id);
+            voucher.setUser(user);
+            VoucherDTO voucherDTO = buildVoucherDTO();
+            VoucherStatus status = VoucherStatus.CANCELED;
+
+            when(voucherRepository.findById(id))
+                    .thenReturn(Optional.of(voucher));
+
+            when(voucherMapper.toVoucherDTO(voucher))
+                    .thenReturn(voucherDTO);
+
+            VoucherDTO result = voucherService.changeStatus(id,status);
+
+            ArgumentCaptor<Voucher> captor =
+                    ArgumentCaptor.forClass(Voucher.class);
+
+            verify(voucherRepository).save(captor.capture());
+
+            Assertions.assertSame(voucherDTO, result);
+            Assertions.assertEquals(VoucherStatus.CANCELED,captor.getValue().getStatus());
+        }
+
+        @Test
+        void changeStatus_VoucherNotFound_ThrowsNotFoundException(){
+            UUID id = UUID.randomUUID();
+
+            VoucherStatus status = VoucherStatus.CANCELED;
+
+            when(voucherRepository.findById(id)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> voucherService.changeStatus(id, status));
+
+            verify(voucherRepository,never()).save(any());
+        }
+
+        @Test
+        void changeStatus_VoucherWithoutUser_ThrowsConflictException(){
+            UUID id = UUID.randomUUID();
+
+            Voucher voucher = buildVoucher();
+            voucher.setId(id);
+
+            VoucherStatus status = VoucherStatus.CANCELED;
+
+            when(voucherRepository.findById(id))
+                    .thenReturn(Optional.of(voucher));
+
+            assertThrows(ConflictException.class, () -> voucherService.changeStatus(id, status));
+
+            verify(voucherRepository,never()).save(any());
+        }
+
+        @Test
+        void changeStatus_AlreadyPaid_ThrowsConflictException(){
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+
+            Voucher voucher = buildVoucher();
+            voucher.setStatus(VoucherStatus.PAID);
+            voucher.setUser(user);
+            voucher.setId(id);
+
+            VoucherStatus status = VoucherStatus.CANCELED;
+
+            when(voucherRepository.findById(id)).thenReturn(Optional.of(voucher));
+
+            assertThrows(ConflictException.class, () -> voucherService.changeStatus(id, status));
+
+            verify(voucherRepository,never()).save(any());
+        }
+        @Test
+        void changeStatus_ToRegistered_ThrowsConflictException(){
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+
+            Voucher voucher = buildVoucher();
+            voucher.setUser(user);
+            voucher.setId(id);
+
+            VoucherStatus status = VoucherStatus.REGISTERED;
+
+            when(voucherRepository.findById(id)).thenReturn(Optional.of(voucher));
+
+
+            assertThrows(ConflictException.class, () -> voucherService.changeStatus(id, status));
+
+            verify(voucherRepository,never()).save(any());
+        }
+
+
+    }
+
+
 }
