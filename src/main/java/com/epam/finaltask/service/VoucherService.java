@@ -14,10 +14,8 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface VoucherService {
     VoucherDTO create(VoucherDTO voucherDTO);
-    VoucherDTO order(String id, String userId);
     VoucherDTO update(String id, VoucherDTO voucherDTO);
     VoucherDTO changeHotStatus(String id, VoucherDTO voucherDTO);
-    VoucherDTO changeStatus(UUID id, VoucherStatus status);
 
     void delete(String voucherId);
 

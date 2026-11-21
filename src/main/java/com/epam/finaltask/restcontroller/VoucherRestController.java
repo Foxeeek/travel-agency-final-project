@@ -4,6 +4,7 @@ import com.epam.finaltask.dto.ApiResponse;
 import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.dto.VoucherStatusRequestDTO;
 import com.epam.finaltask.model.VoucherStatus;
+import com.epam.finaltask.service.VoucherOrderService;
 import com.epam.finaltask.service.VoucherService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,9 +22,11 @@ import java.util.UUID;
 @RequestMapping("/api/vouchers")
 public class VoucherRestController {
     private final VoucherService voucherService;
+    private final VoucherOrderService voucherOrderService;
 
-    public VoucherRestController(VoucherService voucherService) {
+    public VoucherRestController(VoucherService voucherService, VoucherOrderService voucherOrderService) {
         this.voucherService = voucherService;
+        this.voucherOrderService = voucherOrderService;
     }
 
     @GetMapping("/user/{userId}")
@@ -89,7 +92,7 @@ public class VoucherRestController {
     @PatchMapping("/{id}/order-status")
     @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
     public ResponseEntity<ApiResponse<VoucherDTO>> changeOrderStatus(@PathVariable UUID id, @Valid @RequestBody VoucherStatusRequestDTO request) {
-        VoucherDTO voucher = voucherService.changeStatus(id, request.getStatus());
+        VoucherDTO voucher = voucherOrderService.changeStatus(id, request.getStatus());
         return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher status is successfully changed", voucher));
     }
 

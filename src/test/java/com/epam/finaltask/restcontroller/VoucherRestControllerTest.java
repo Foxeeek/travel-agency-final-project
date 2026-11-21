@@ -7,6 +7,7 @@ import com.epam.finaltask.model.HotelType;
 import com.epam.finaltask.model.TourType;
 import com.epam.finaltask.model.TransferType;
 import com.epam.finaltask.model.VoucherStatus;
+import com.epam.finaltask.service.VoucherOrderService;
 import com.epam.finaltask.service.VoucherService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -54,6 +55,9 @@ public class VoucherRestControllerTest {
 
     @MockBean
     private VoucherService voucherService;
+
+    @MockBean
+    private VoucherOrderService voucherOrderService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -445,7 +449,7 @@ public class VoucherRestControllerTest {
 
         VoucherDTO dto = new VoucherDTO();
 
-        when(voucherService.changeStatus(id, VoucherStatus.PAID)).thenReturn(dto);
+        when(voucherOrderService.changeStatus(id, VoucherStatus.PAID)).thenReturn(dto);
 
         mockMvc.perform(patch("/api/vouchers/{id}/order-status", id).contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"PAID\"}"))
                 .andDo(print())
@@ -454,7 +458,7 @@ public class VoucherRestControllerTest {
                 .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
                 .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
 
-        verify(voucherService).changeStatus(id, VoucherStatus.PAID);
+        verify(voucherOrderService).changeStatus(id, VoucherStatus.PAID);
     }
     @Test
     @WithMockUser(authorities = "ROLE_USER")
@@ -471,7 +475,7 @@ public class VoucherRestControllerTest {
                 .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
                 .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
 
-        verifyNoInteractions(voucherService);
+        verifyNoInteractions(voucherOrderService);
 
 
     }
@@ -493,7 +497,7 @@ public class VoucherRestControllerTest {
                 .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
                 .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
 
-        verifyNoInteractions(voucherService);
+        verifyNoInteractions(voucherOrderService);
     }
 
     @Test
@@ -501,7 +505,7 @@ public class VoucherRestControllerTest {
     void changeOrderStatus_Conflict_Returns409() throws Exception{
         UUID id = UUID.randomUUID();
 
-        when(voucherService.changeStatus(id, VoucherStatus.PAID)).thenThrow(new ConflictException("Voucher has no user"));
+        when(voucherOrderService.changeStatus(id, VoucherStatus.PAID)).thenThrow(new ConflictException("Voucher has no user"));
 
         mockMvc.perform(patch("/api/vouchers/{id}/order-status", id).contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"PAID\"}"))
                 .andDo(print())
@@ -510,7 +514,7 @@ public class VoucherRestControllerTest {
                 .andExpect(jsonPath("$.statusMessage").value("Voucher has no user"))
                 .andExpect(jsonPath("$.statusCode").value("CONFLICT"));
 
-        verify(voucherService).changeStatus(id, VoucherStatus.PAID);
+        verify(voucherOrderService).changeStatus(id, VoucherStatus.PAID);
     }
 
 }
