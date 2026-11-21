@@ -85,7 +85,7 @@ public class VoucherRestControllerTest {
     }
     
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = "ROLE_MANAGER")
     void findAllByUserId_Successfully() throws Exception {
         String userId = String.valueOf(UUID.randomUUID());
         List<VoucherDTO> voucherDTOList = new ArrayList<>();
@@ -283,7 +283,7 @@ public class VoucherRestControllerTest {
     }
 
     @Nested
-    @WithMockUser
+    @WithMockUser(authorities = "ROLE_ADMIN")
     class ExceptionErrorTest{
 
 

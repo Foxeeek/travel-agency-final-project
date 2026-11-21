@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -25,18 +26,21 @@ public class VoucherRestController {
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
     public ResponseEntity<ApiResponse<List<VoucherDTO>>> findAllByUserId(@PathVariable String userId) {
         List<VoucherDTO> vouchers = voucherService.findAllByUserId(userId);
         return ResponseEntity.ok(new ApiResponse<>("OK", "Vouchers are successfully found", vouchers));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<VoucherDTO>> createVoucherValidData(@Valid @RequestBody VoucherDTO voucherDTO) {
         VoucherDTO voucher = voucherService.create(voucherDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("OK", "Voucher is successfully created", voucher));
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
     public ResponseEntity<ApiResponse<VoucherDTO>> changeVoucherStatus(@PathVariable String id, @RequestBody VoucherDTO voucherDTO) {
         VoucherDTO voucher = voucherService.changeHotStatus(id, voucherDTO);
         return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher status is successfully changed", voucher));
@@ -44,12 +48,14 @@ public class VoucherRestController {
 
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<VoucherDTO>> updateVoucher(@PathVariable String id,@Valid @RequestBody VoucherDTO voucherDTO) {
         VoucherDTO voucher = voucherService.update(id, voucherDTO);
         return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher is successfully updated", voucher));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteVoucherById(@PathVariable String id) {
         voucherService.delete(id);
         return ResponseEntity.ok(new ApiResponse<>("OK", String.format("Voucher with Id %s has been deleted", id), null));
