@@ -14,6 +14,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+
+import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -106,7 +108,7 @@ public class VoucherRestController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<PageResponseDTO<VoucherDTO>>> search(@ModelAttribute VoucherFilterDTO filter, Pageable pageable) {
+    public ResponseEntity<ApiResponse<PageResponseDTO<VoucherDTO>>> search(@Valid @ModelAttribute VoucherFilterDTO filter, Pageable pageable) {
         PageResponseDTO<VoucherDTO> page = voucherService.search(filter,pageable);
         return ResponseEntity.ok(new ApiResponse<>("OK", "Vouchers are successfully found", page));
     }

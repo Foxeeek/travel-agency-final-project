@@ -5,10 +5,12 @@ import com.epam.finaltask.model.TourType;
 import com.epam.finaltask.model.TransferType;
 import com.epam.finaltask.model.VoucherStatus;
 import org.springframework.format.annotation.DateTimeFormat;
+import com.epam.finaltask.validation.ValidDateRange;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@ValidDateRange
 public class VoucherFilterDTO {
     private TourType tourType;
     private HotelType hotelType;

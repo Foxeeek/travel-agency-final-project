@@ -3,10 +3,12 @@ package com.epam.finaltask.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import com.epam.finaltask.validation.ValidDateRange;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
+@ValidDateRange
 public class VoucherDTO {
 
     private String id;
