@@ -1,12 +1,10 @@
 package com.epam.finaltask.service;
 
 import com.epam.finaltask.dto.VoucherDTO;
-import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
 import com.epam.finaltask.repository.VoucherRepository;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +25,21 @@ public class VoucherServiceImpl implements VoucherService {
         this.voucherRepository = voucherRepository;
     }
 
+    private Voucher voucherById(UUID id){
+        return voucherRepository.findById(id)
+                .orElseThrow(() -> {
+                            log.warn("Voucher with id {} not found", id);
+                            return new NotFoundException("Voucher " + id + " not found");
+                        }
+                );
+    }
+
+    private List<VoucherDTO> toDtoList(List<Voucher> vouchers){
+        return vouchers.stream()
+                .map(voucherMapper::toVoucherDTO)
+                .toList();
+    }
+
     @Override
     public VoucherDTO create(VoucherDTO voucherDTO) {
         Voucher voucher = voucherMapper.toVoucher(voucherDTO);
@@ -39,12 +52,7 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public VoucherDTO update(String id, VoucherDTO voucherDTO) {
 
-        Voucher voucher = voucherRepository.findById(UUID.fromString(id))
-                .orElseThrow(() -> {
-                            log.warn("Voucher with id {} not found", id);
-                            return new NotFoundException("Voucher " + id + " not found");
-                        }
-                );
+        Voucher voucher = voucherById(UUID.fromString(id));
         voucher.setTitle(voucherDTO.getTitle());
         voucher.setDescription(voucherDTO.getDescription());
 
@@ -67,24 +75,14 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public void delete(String voucherId) {
-        Voucher voucher = voucherRepository.findById(UUID.fromString(voucherId))
-                .orElseThrow(() -> {
-                            log.warn("Voucher with id {} not found", voucherId);
-                            return new NotFoundException("Voucher " + voucherId + " not found");
-                        }
-                );
+        Voucher voucher = voucherById(UUID.fromString(voucherId));
         voucherRepository.delete(voucher);
         log.info("Voucher deleted successfully with ID: {}", voucher.getId());
     }
 
     @Override
     public VoucherDTO changeHotStatus(String id, VoucherDTO voucherDTO) {
-        Voucher voucher = voucherRepository.findById(UUID.fromString(id))
-                .orElseThrow(() -> {
-                            log.warn("Voucher with id {} not found", id);
-                            return new NotFoundException("Voucher " + id + " not found");
-                        }
-                );
+        Voucher voucher = voucherById(UUID.fromString(id));
         Voucher fromDto = voucherMapper.toVoucher(voucherDTO);
 
         voucher.setIsHot(fromDto.getIsHot());
@@ -106,8 +104,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public List<VoucherDTO> findAllByTourType(TourType tourType) {
-        List<VoucherDTO> vouchers = voucherRepository.findAllByTourType(tourType).stream()
-                .map(voucherMapper::toVoucherDTO).toList();
+        List<VoucherDTO> vouchers = toDtoList(voucherRepository.findAllByTourType(tourType));
         log.debug("Found {} vouchers by tour type {}", vouchers.size(), tourType);
         return vouchers;
     }
@@ -122,47 +119,35 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public List<VoucherDTO> findAllByPrice(Double price) {
-        List<VoucherDTO> vouchers = voucherRepository.findAllByPrice(price).stream()
-                .map(voucherMapper::toVoucherDTO).toList();
+        List<VoucherDTO> vouchers = toDtoList(voucherRepository.findAllByPrice(price));
         log.debug("Found {} vouchers by price {}", vouchers.size(), price);
         return vouchers;
     }
 
     @Override
     public List<VoucherDTO> findAllByHotelType(HotelType hotelType) {
-        List<VoucherDTO> vouchers = voucherRepository.findAllByHotelType(hotelType).stream()
-                .map(voucherMapper::toVoucherDTO).toList();
+        List<VoucherDTO> vouchers = toDtoList(voucherRepository.findAllByHotelType(hotelType));
         log.debug("Found {} vouchers by hotel type {}", vouchers.size(), hotelType);
         return vouchers;
     }
 
     @Override
     public List<VoucherDTO> findAll() {
-        List<VoucherDTO> vouchers = voucherRepository.findAll().stream()
-                .map(voucherMapper::toVoucherDTO).toList();
+        List<VoucherDTO> vouchers = toDtoList(voucherRepository.findAll());
         log.debug("Found {} vouchers", vouchers.size());
         return vouchers;
     }
 
     @Override
-
     public List<VoucherDTO> findAllHotFirst() {
-        List<VoucherDTO> vouchers = voucherRepository
-                .findAllHotFirst()
-                .stream()
-                .map(voucherMapper::toVoucherDTO)
-                .toList();
+        List<VoucherDTO> vouchers = toDtoList(voucherRepository.findAllHotFirst());
         log.debug("Found {} vouchers", vouchers.size());
         return vouchers;
     }
 
     @Override
     public List<VoucherDTO> findAllByPriceRange(BigDecimal min, BigDecimal max) {
-        List<VoucherDTO> vouchers = voucherRepository
-                .findAllByPriceRange(min, max)
-                .stream()
-                .map(voucherMapper::toVoucherDTO)
-                .toList();
+        List<VoucherDTO> vouchers = toDtoList(voucherRepository.findAllByPriceRange(min, max));
         log.debug("Found {} vouchers with price between {} : {}", vouchers.size(), min, max);
         return vouchers;
 
@@ -170,22 +155,14 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public List<VoucherDTO> findAllByUserIdAndStatus(UUID userId, VoucherStatus status) {
-        List<VoucherDTO> vouchers = voucherRepository
-                .findAllByUserIdAndStatus(userId, status)
-                .stream()
-                .map(voucherMapper::toVoucherDTO)
-                .toList();
+        List<VoucherDTO> vouchers = toDtoList(voucherRepository.findAllByUserIdAndStatus(userId, status));
         log.debug("Found {} vouchers for user {} with {} status", vouchers.size(), userId, status);
         return vouchers;
     }
 
     @Override
     public List<VoucherDTO> findAllByArrivalPeriod(LocalDate from, LocalDate to) {
-        List<VoucherDTO> vouchers = voucherRepository
-                .findAllByArrivalPeriod(from, to)
-                .stream()
-                .map(voucherMapper::toVoucherDTO)
-                .toList();
+        List<VoucherDTO> vouchers = toDtoList(voucherRepository.findAllByArrivalPeriod(from, to));
         log.debug("Found {} vouchers for period from {} to {}", vouchers.size(), from, to);
         return vouchers;
     }

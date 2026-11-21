@@ -30,22 +30,29 @@ public class VoucherOrderServiceImpl implements VoucherOrderService{
         this.voucherRepository = voucherRepository;
     }
 
-    @Override
-    @Transactional
-    public VoucherDTO order(UUID id, UUID userId) {
-        Voucher voucher = voucherRepository.findById(id)
+    private Voucher voucherById(UUID id){
+        return voucherRepository.findById(id)
                 .orElseThrow(() -> {
                             log.warn("Voucher with id {} not found", id);
                             return new NotFoundException("Voucher " + id + " not found");
                         }
                 );
+    }
 
-        User user = userRepository.findById(userId)
+    private User userById(UUID id){
+        return userRepository.findById(id)
                 .orElseThrow(() -> {
-                            log.warn("User with id {} not found", userId);
-                            return new NotFoundException("User " + userId + " not found");
+                            log.warn("User with id {} not found", id);
+                            return new NotFoundException("User " + id + " not found");
                         }
                 );
+    }
+
+    @Override
+    @Transactional
+    public VoucherDTO order(UUID id, UUID userId) {
+        Voucher voucher = voucherById(id);
+        User user = userById(userId);
 
 
         if (voucher.getUser() != null){
@@ -75,12 +82,7 @@ public class VoucherOrderServiceImpl implements VoucherOrderService{
     @Override
     @Transactional
     public VoucherDTO changeStatus(UUID id, VoucherStatus status) {
-        Voucher voucher = voucherRepository.findById(id)
-                .orElseThrow(() -> {
-                            log.warn("Voucher with id {} not found", id);
-                            return new NotFoundException("Voucher " + id + " not found");
-                        }
-                );
+        Voucher voucher = voucherById(id);
 
         if (voucher.getUser() == null){
             log.warn("Voucher {} has no user, status cannot be changed", id);
