@@ -2,6 +2,7 @@ package com.epam.finaltask.controller;
 
 import com.epam.finaltask.auth.CustomUserDetails;
 import com.epam.finaltask.dto.LoginRequestDTO;
+import com.epam.finaltask.dto.UserResponseDTO;
 import com.epam.finaltask.dto.VoucherFilterDTO;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
@@ -13,6 +14,7 @@ import com.epam.finaltask.token.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -40,7 +42,9 @@ public class PageController {
     AuthenticationManager authenticationManager;
     VoucherOrderService voucherOrderService;
 
-    public PageController(AuthenticationManager authenticationManager, JwtService jwtService, UserService userService, VoucherService voucherService,VoucherOrderService voucherOrderService) {
+    public PageController(AuthenticationManager authenticationManager, JwtService jwtService,
+                          UserService userService, VoucherService voucherService,
+                          VoucherOrderService voucherOrderService) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userService = userService;
@@ -106,12 +110,11 @@ public class PageController {
         return "redirect:/login";
     }
 
-
     @PostMapping("/vouchers/{id}/buy")
-    public String buy(@PathVariable UUID id,
+    @PreAuthorize("hasRole('USER')")
+    public String order(@PathVariable UUID id,
                       @AuthenticationPrincipal CustomUserDetails principal,
                       RedirectAttributes redirect) {
-
         try {
             voucherOrderService.order(id, principal.getUser().getId());
             redirect.addFlashAttribute("message", "Ordered!");
@@ -123,4 +126,12 @@ public class PageController {
         return "redirect:/vouchers";
     }
 
+    @GetMapping("/profile")
+    public String profile(@AuthenticationPrincipal CustomUserDetails principal,
+                          Model model) {
+        UUID id = principal.getUser().getId();
+        model.addAttribute("profile", userService.getProfile(id));
+        model.addAttribute("vouchers", voucherService.findAllByUserId(id.toString()));
+        return "profile";
+    }
 }

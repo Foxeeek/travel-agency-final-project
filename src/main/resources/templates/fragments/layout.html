@@ -11,22 +11,43 @@
 </head>
 <body>
 <nav th:fragment="navbar"
-     class="navbar navbar-dark bg-dark px-3">
+     class="navbar navbar-expand navbar-dark bg-dark px-3">
+
     <a class="navbar-brand"
-       th:href="@{/products}">
-        Vouchers
+       th:href="@{/vouchers}">
+        Travel Agency
     </a>
 
-    <a class="nav-link text-white"
-       th:href="@{/admin}"
-       sec:authorize="hasRole('ADMIN')">
-        Admin panel
-    </a>
+    <ul class="navbar-nav me-auto">
 
-    <span class="text-white"
+        <li class="nav-item">
+            <a class="nav-link"
+               th:href="@{/vouchers}">
+                Vouchers
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link"
+               th:href="@{/profile}">
+                My account
+            </a>
+        </li>
+
+        <li class="nav-item"
+            sec:authorize="hasAnyRole('MANAGER','ADMIN')">
+            <a class="nav-link"
+               th:href="@{/manage}">
+                Manage
+            </a>
+        </li>
+
+    </ul>
+
+    <span class="navbar-text text-white me-3"
           sec:authentication="name">
-            username
-        </span>
+        username
+    </span>
 
     <form th:action="@{/logout}"
           method="post">

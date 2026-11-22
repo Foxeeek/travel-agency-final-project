@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Profile')}">
+</head>
+
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}">
+</nav>
+
+<div class="container mt-4">
+
+    <h1>My profile</h1>
+
+    <dl class="row">
+
+        <dt class="col-sm-3">Login</dt>
+        <dd class="col-sm-9" th:text="${profile.username}"></dd>
+
+        <dt class="col-sm-3">Balance</dt>
+        <dd class="col-sm-9" th:text="${profile.balance}"></dd>
+        <dt class="col-sm-3">Phone</dt>
+        <dd class="col-sm-9" th:text="${profile.phoneNumber}"></dd>
+
+    </dl>
+
+    <h2>My vouchers</h2>
+
+    <table class="table table-striped">
+
+        <thead>
+        <tr>
+            <th>Voucher</th>
+            <th>Status</th>
+            <th>Price</th>
+            <th>From</th>
+            <th>To</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        <tr th:each="v : ${vouchers}">
+            <td th:text="${v.title}"></td>
+            <td th:text="${v.status}"></td>
+            <td th:text="${v.price}"></td>
+            <td th:text="${v.arrivalDate}"></td>
+            <td th:text="${v.evictionDate}"></td>
+        </tr>
+
+        <tr th:if="${#lists.isEmpty(vouchers)}">
+            <td colspan="5">No vouchers yet</td>
+        </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}">
+</th:block>
+
+</body>
+</html>
