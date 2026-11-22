@@ -11,7 +11,7 @@ INSERT INTO USERS
  account_status)
 VALUES ('f3e02ce0-365d-4c03-90a1-98f00cf6d3d2',
         'admin1',
-        '$2a$12$lGMyH/q2tkSYyDQ4M6Bp8ObuzHAkrPqDBi/.gp8JWmYjRjRCLRwkW',
+        '$2a$10$.l4GYlv3JC2.cQuWkQiM9ufbhrs5ktY7YL/2oMAhA0kP9zGwqUhSq',
         'ADMIN',
         500.00,
         null,

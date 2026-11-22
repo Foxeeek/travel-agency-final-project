@@ -2,9 +2,9 @@ package com.epam.finaltask.controller;
 
 import com.epam.finaltask.auth.CustomUserDetails;
 import com.epam.finaltask.dto.LoginRequestDTO;
-import com.epam.finaltask.dto.UserResponseDTO;
 import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.dto.VoucherFilterDTO;
+import com.epam.finaltask.dto.VoucherRequestDTO;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.model.VoucherStatus;
@@ -14,6 +14,9 @@ import com.epam.finaltask.service.VoucherService;
 import com.epam.finaltask.token.JwtAuthenticationFilter;
 import com.epam.finaltask.token.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,9 +27,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -52,12 +54,11 @@ public class PageController {
     }
 
 
-
     @GetMapping("/vouchers")
     public String vouchers(@ModelAttribute("filter") VoucherFilterDTO filter,
                            @PageableDefault(size = 10, sort = "price") Pageable pageable,
                            Model model) {
-        model.addAttribute("page", voucherService.search(filter,pageable));
+        model.addAttribute("page", voucherService.search(filter, pageable));
         return "vouchers";
     }
 
@@ -112,8 +113,8 @@ public class PageController {
     @PostMapping("/vouchers/{id}/buy")
     @PreAuthorize("hasRole('USER')")
     public String order(@PathVariable UUID id,
-                      @AuthenticationPrincipal CustomUserDetails principal,
-                      RedirectAttributes redirect) {
+                        @AuthenticationPrincipal CustomUserDetails principal,
+                        RedirectAttributes redirect) {
         try {
             voucherOrderService.order(id, principal.getUser().getId());
             redirect.addFlashAttribute("message", "Ordered!");
@@ -147,8 +148,8 @@ public class PageController {
     @PostMapping("/manage/vouchers/{id}/hot")
     @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
     public String toggleHot(@PathVariable String id,
-                                 @RequestParam boolean hot,
-                                 RedirectAttributes redirect) {
+                            @RequestParam boolean hot,
+                            RedirectAttributes redirect) {
 
         VoucherDTO dto = new VoucherDTO();
         dto.setIsHot(hot);
@@ -161,7 +162,7 @@ public class PageController {
     @PostMapping("/manage/orders/{id}/status")
     @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
     public String changeStatus(@PathVariable UUID id,
-                               @RequestParam VoucherStatus status,           // нове значення статусу з форми
+                               @RequestParam VoucherStatus status,
                                RedirectAttributes redirect) {
         try {
             voucherOrderService.changeStatus(id, status);
@@ -169,6 +170,41 @@ public class PageController {
         } catch (ConflictException | NotFoundException e) {
             redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/manage";
+    }
+
+    @PostMapping("/manage/vouchers/{id}/delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String deleteVoucher(@PathVariable String id,
+                                RedirectAttributes redirect) {
+        try {
+            voucherService.delete(id);
+            redirect.addFlashAttribute("message", "Deleted");
+        } catch (NotFoundException | ConflictException e) {
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/manage";
+    }
+    //    -------------------
+    @GetMapping("/manage/vouchers/new")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String newVoucherForm(Model model) {
+        model.addAttribute("voucherForm", new VoucherRequestDTO());
+        return "voucher-form";
+    }
+
+    @PostMapping("/manage/vouchers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String createVoucher(@Valid @ModelAttribute("voucherForm") VoucherRequestDTO form,
+                             BindingResult result,
+                             RedirectAttributes redirect) {
+
+        if (result.hasErrors()) {
+            return "voucher-form";
+        }
+
+        voucherService.create(form);
+        redirect.addFlashAttribute("message", "Created");
         return "redirect:/manage";
     }
 }

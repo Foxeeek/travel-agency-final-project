@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <head th:replace="~{fragments/layout :: head('Manage')}">
 </head>
@@ -11,6 +11,12 @@
 
 <div class="container mt-4">
     <h1>Manage vouchers</h1>
+
+    <a class="btn btn-primary mb-3"
+       th:href="@{/manage/vouchers/new}"
+       sec:authorize="hasRole('ADMIN')">
+        New voucher
+    </a>
 
     <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
     <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
@@ -65,7 +71,19 @@
                     <input type="hidden" name="status" value="CANCELED">
                     <button class="btn btn-sm btn-danger">Cancel</button>
                 </form>
+
                 </div>
+                <form th:action="@{/manage/vouchers/{id}/delete(id=${v.id})}"
+                      method="post"
+                      class="d-inline"
+                      sec:authorize="hasRole('ADMIN')"
+                      th:if="${v.userId == null}"
+                      onsubmit="return confirm('Delete this voucher?')">
+                    <button class="btn btn-sm btn-outline-danger">
+                        Delete
+                    </button>
+                </form>
+
             </td>
 
         </tr>

@@ -4,6 +4,7 @@ import com.epam.finaltask.dto.PageResponseDTO;
 import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.dto.VoucherFilterDTO;
 import com.epam.finaltask.dto.VoucherRequestDTO;
+import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
@@ -87,6 +88,10 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public void delete(String voucherId) {
         Voucher voucher = voucherById(UUID.fromString(voucherId));
+        if (voucher.getUser() != null){
+            log.warn("Voucher {} is ordered and cannot be deleted", voucher.getId());
+            throw new ConflictException("Voucher is ordered and cannot be deleted");
+        }
         voucherRepository.delete(voucher);
         log.info("Voucher deleted successfully with ID: {}", voucher.getId());
     }

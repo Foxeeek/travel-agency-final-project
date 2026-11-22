@@ -7,6 +7,7 @@ import com.epam.finaltask.validation.ValidDateRange;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
@@ -26,8 +27,10 @@ public class VoucherRequestDTO {
     @NotNull(message = "is required")
     private HotelType hotelType;
     @NotNull(message = "is required")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate arrivalDate;
     @NotNull(message = "is required")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate evictionDate;
     @NotNull(message = "is required")
     private Boolean isHot;
