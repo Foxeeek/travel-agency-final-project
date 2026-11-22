@@ -2,6 +2,13 @@ package com.epam.finaltask.restcontroller;
 
 import com.epam.finaltask.auth.CustomUserDetails;
 import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.dto.VoucherRequestDTO;
+import com.epam.finaltask.dto.PageResponseDTO;
+import com.epam.finaltask.dto.VoucherFilterDTO;
+import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.model.*;
@@ -107,23 +114,21 @@ public class VoucherRestControllerTest {
     @Test
     @WithMockUser(authorities = "ROLE_ADMIN")
     void createVoucher_ValidData_SuccessfullyCreated() throws Exception {
-        VoucherDTO voucherDTO = new VoucherDTO();
+        VoucherRequestDTO voucherDTO = new VoucherRequestDTO();
         voucherDTO.setTitle("SummerSale2024");
         voucherDTO.setDescription("Summer Sale Voucher Description");
         voucherDTO.setPrice(299.99);
-        voucherDTO.setTourType(TourType.ADVENTURE.name());
-        voucherDTO.setTransferType(TransferType.PLANE.name());
-        voucherDTO.setHotelType(HotelType.FIVE_STARS.name());
-        voucherDTO.setStatus(VoucherStatus.PAID.name());
+        voucherDTO.setTourType(TourType.ADVENTURE);
+        voucherDTO.setTransferType(TransferType.PLANE);
+        voucherDTO.setHotelType(HotelType.FIVE_STARS);
         voucherDTO.setArrivalDate(LocalDate.of(2024, 6, 15));
         voucherDTO.setEvictionDate(LocalDate.of(2024, 6, 20));
-        voucherDTO.setUserId(UUID.randomUUID());
         voucherDTO.setIsHot(false);
 
         String expectedStatusCode = "OK";
         String expectedMessage = "Voucher is successfully created";
 
-        when(voucherService.create(any(VoucherDTO.class))).thenReturn(voucherDTO);
+        when(voucherService.create(any(VoucherRequestDTO.class))).thenReturn(new VoucherDTO());
 
         mockMvc.perform(post("/api/vouchers")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -138,24 +143,22 @@ public class VoucherRestControllerTest {
     @Test
     @WithMockUser(authorities = "ROLE_ADMIN")
     void updateVoucher_ValidData_SuccessfullyUpdated() throws Exception {
-        VoucherDTO voucherDTO = new VoucherDTO();
+        VoucherRequestDTO voucherDTO = new VoucherRequestDTO();
         voucherDTO.setTitle("UpdatedTitle");
         voucherDTO.setDescription("Updated description");
         voucherDTO.setPrice(499.99);
-        voucherDTO.setTourType(TourType.SAFARI.name());
-        voucherDTO.setTransferType(TransferType.JEEPS.name());
-        voucherDTO.setHotelType(HotelType.THREE_STARS.name());
-        voucherDTO.setStatus(VoucherStatus.PAID.name());
+        voucherDTO.setTourType(TourType.SAFARI);
+        voucherDTO.setTransferType(TransferType.JEEPS);
+        voucherDTO.setHotelType(HotelType.THREE_STARS);
         voucherDTO.setArrivalDate(LocalDate.of(2024, 7, 15));
         voucherDTO.setEvictionDate(LocalDate.of(2024, 7, 20));
-        voucherDTO.setUserId(UUID.randomUUID());
         voucherDTO.setIsHot(true);
 
         String voucherId = String.valueOf(UUID.randomUUID());
         String expectedStatusCode = "OK";
         String expectedMessage = "Voucher is successfully updated";
 
-        when(voucherService.update(eq(voucherId), any(VoucherDTO.class))).thenReturn(voucherDTO);
+        when(voucherService.update(eq(voucherId), any(VoucherRequestDTO.class))).thenReturn(new VoucherDTO());
 
         mockMvc.perform(patch("/api/vouchers/" + voucherId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -291,16 +294,14 @@ public class VoucherRestControllerTest {
 
         @Test
         void createVoucher_MissingTitle_Returns400() throws Exception {
-            VoucherDTO voucherDTO = new VoucherDTO();
+            VoucherRequestDTO voucherDTO = new VoucherRequestDTO();
             voucherDTO.setDescription("Summer Sale Voucher Description");
             voucherDTO.setPrice(299.99);
-            voucherDTO.setTourType(TourType.ADVENTURE.name());
-            voucherDTO.setTransferType(TransferType.PLANE.name());
-            voucherDTO.setHotelType(HotelType.FIVE_STARS.name());
-            voucherDTO.setStatus(VoucherStatus.PAID.name());
+            voucherDTO.setTourType(TourType.ADVENTURE);
+            voucherDTO.setTransferType(TransferType.PLANE);
+            voucherDTO.setHotelType(HotelType.FIVE_STARS);
             voucherDTO.setArrivalDate(LocalDate.of(2024, 6, 15));
             voucherDTO.setEvictionDate(LocalDate.of(2024, 6, 20));
-            voucherDTO.setUserId(UUID.randomUUID());
             voucherDTO.setIsHot(false);
 
             String expectedStatusCode = "BAD_REQUEST";
@@ -318,17 +319,15 @@ public class VoucherRestControllerTest {
 
         @Test
         void createVoucher_NegativePrice_Returns400() throws Exception {
-            VoucherDTO voucherDTO = new VoucherDTO();
+            VoucherRequestDTO voucherDTO = new VoucherRequestDTO();
             voucherDTO.setTitle("Voucher title");
             voucherDTO.setDescription("Summer Sale Voucher Description");
             voucherDTO.setPrice(-299.99);
-            voucherDTO.setTourType(TourType.ADVENTURE.name());
-            voucherDTO.setTransferType(TransferType.PLANE.name());
-            voucherDTO.setHotelType(HotelType.FIVE_STARS.name());
-            voucherDTO.setStatus(VoucherStatus.PAID.name());
+            voucherDTO.setTourType(TourType.ADVENTURE);
+            voucherDTO.setTransferType(TransferType.PLANE);
+            voucherDTO.setHotelType(HotelType.FIVE_STARS);
             voucherDTO.setArrivalDate(LocalDate.of(2024, 6, 15));
             voucherDTO.setEvictionDate(LocalDate.of(2024, 6, 20));
-            voucherDTO.setUserId(UUID.randomUUID());
             voucherDTO.setIsHot(false);
 
             String expectedStatusCode = "BAD_REQUEST";
@@ -346,18 +345,16 @@ public class VoucherRestControllerTest {
 
         @Test
         void updateVoucher_NotFound_Returns404() throws Exception {
-            VoucherDTO voucherDTO = new VoucherDTO();
+            VoucherRequestDTO voucherDTO = new VoucherRequestDTO();
             UUID id = UUID.randomUUID();
             voucherDTO.setTitle("Voucher title");
             voucherDTO.setDescription("Summer Sale Voucher Description");
             voucherDTO.setPrice(299.99);
-            voucherDTO.setTourType(TourType.ADVENTURE.name());
-            voucherDTO.setTransferType(TransferType.PLANE.name());
-            voucherDTO.setHotelType(HotelType.FIVE_STARS.name());
-            voucherDTO.setStatus(VoucherStatus.PAID.name());
+            voucherDTO.setTourType(TourType.ADVENTURE);
+            voucherDTO.setTransferType(TransferType.PLANE);
+            voucherDTO.setHotelType(HotelType.FIVE_STARS);
             voucherDTO.setArrivalDate(LocalDate.of(2024, 6, 15));
             voucherDTO.setEvictionDate(LocalDate.of(2024, 6, 20));
-            voucherDTO.setUserId(UUID.randomUUID());
             voucherDTO.setIsHot(false);
 
             String expectedStatusCode = "NOT_FOUND";
@@ -374,7 +371,7 @@ public class VoucherRestControllerTest {
                     .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
                     .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
 
-            verify(voucherService).update(eq(id.toString()), any(VoucherDTO.class));
+            verify(voucherService).update(eq(id.toString()), any(VoucherRequestDTO.class));
         }
 
         @Test
@@ -523,109 +520,241 @@ public class VoucherRestControllerTest {
     }
 
 
-    @Test
-    void order_AsUser_Returns200() throws Exception {
-        UUID id = UUID.randomUUID();
+    private CustomUserDetails customUser(UUID id, Role role) {
         User user = new User();
         user.setId(id);
-        user.setRole(Role.USER);
+        user.setRole(role);
+        user.setActive(true);
+        return new CustomUserDetails(user);
+    }
 
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+    // ---------- POST /api/vouchers/{id}/order ----------
 
+    @Test
+    void order_AsUser_Returns200() throws Exception {
+        UUID voucherId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
 
-        String expectedStatusCode = "OK";
-        String expectedMessage = "Voucher is successfully ordered";
+        when(voucherOrderService.order(voucherId, userId)).thenReturn(new VoucherDTO());
 
-        VoucherDTO dto = new VoucherDTO();
-
-        when(voucherOrderService.order(id, user.getId())).thenReturn(dto);
-
-        mockMvc.perform(post("/api/vouchers/{id}/order", id)
-                        .with(user(customUserDetails)))
-                .andDo(print())
+        mockMvc.perform(post("/api/vouchers/{id}/order", voucherId)
+                        .with(user(customUser(userId, Role.USER))))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
-                .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+                .andExpect(jsonPath("$.statusCode").value("OK"))
+                .andExpect(jsonPath("$.statusMessage").value("Voucher is successfully ordered"));
 
-        verify(voucherOrderService).order(id, user.getId());
+        verify(voucherOrderService).order(voucherId, userId);
     }
 
     @Test
     void order_AsManager_Returns403() throws Exception {
-        UUID id = UUID.randomUUID();
-        User user = new User();
-        user.setId(id);
-        user.setRole(Role.MANAGER);
+        UUID voucherId = UUID.randomUUID();
 
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
-
-
-        String expectedStatusCode = "FORBIDDEN";
-        String expectedMessage = "Access denied";
-
-        VoucherDTO dto = new VoucherDTO();
-
-        when(voucherOrderService.order(id, user.getId())).thenReturn(dto);
-
-        mockMvc.perform(post("/api/vouchers/{id}/order", id)
-                        .with(user(customUserDetails)))
-                .andDo(print())
+        mockMvc.perform(post("/api/vouchers/{id}/order", voucherId)
+                        .with(user(customUser(UUID.randomUUID(), Role.MANAGER))))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
-                .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+                .andExpect(jsonPath("$.statusCode").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.statusMessage").value("Access denied"));
 
-        verify(voucherOrderService, never()).order(id, user.getId());
+        verifyNoInteractions(voucherOrderService);
     }
 
     @Test
     void order_Unauthenticated_Returns401() throws Exception {
-        UUID id = UUID.randomUUID();
-        User user = new User();
-        user.setId(id);
-
-        String expectedStatusCode = "UNAUTHORIZED";
-        String expectedMessage = "Authentication required";
-
-        VoucherDTO dto = new VoucherDTO();
-
-        when(voucherOrderService.order(id, user.getId())).thenReturn(dto);
-
-        mockMvc.perform(post("/api/vouchers/{id}/order", id))
-                .andDo(print())
+        mockMvc.perform(post("/api/vouchers/{id}/order", UUID.randomUUID()))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
-                .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+                .andExpect(jsonPath("$.statusCode").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.statusMessage").value("Authentication required"));
 
-        verify(voucherOrderService, never()).order(id, user.getId());
+        verifyNoInteractions(voucherOrderService);
     }
 
     @Test
     void order_InsufficientBalance_Returns409() throws Exception {
-        UUID id = UUID.randomUUID();
-        User user = new User();
-        user.setId(id);
-        user.setBalance(BigDecimal.valueOf(100));
-        user.setRole(Role.USER);
+        UUID voucherId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
 
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+        when(voucherOrderService.order(voucherId, userId)).thenThrow(new ConflictException("Insufficient balance"));
 
-        String expectedStatusCode = "CONFLICT";
-        String expectedMessage = "Not enough money";
-
-        when(voucherOrderService.order(id, user.getId())).thenThrow(new ConflictException("Not enough money"));
-
-        mockMvc.perform(post("/api/vouchers/{id}/order", id)
-                        .with(user(customUserDetails)))
-                .andDo(print())
+        mockMvc.perform(post("/api/vouchers/{id}/order", voucherId)
+                        .with(user(customUser(userId, Role.USER))))
                 .andExpect(status().isConflict())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.statusCode").value(expectedStatusCode))
-                .andExpect(jsonPath("$.statusMessage").value(expectedMessage));
+                .andExpect(jsonPath("$.statusCode").value("CONFLICT"))
+                .andExpect(jsonPath("$.statusMessage").value("Insufficient balance"));
 
-        verify(voucherOrderService).order(id, user.getId());
+        verify(voucherOrderService).order(voucherId, userId);
+    }
+
+    // ---------- GET /api/vouchers/user/{userId}/status (manager, admin or owner) ----------
+
+    @Test
+    void findAllByUserIdAndStatus_AsOwner_Returns200() throws Exception {
+        UUID ownerId = UUID.randomUUID();
+
+        when(voucherService.findAllByUserIdAndStatus(ownerId, VoucherStatus.PAID)).thenReturn(new ArrayList<>());
+
+        mockMvc.perform(get("/api/vouchers/user/{userId}/status", ownerId)
+                        .param("status", "PAID")
+                        .with(user(customUser(ownerId, Role.USER))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusCode").value("OK"));
+
+        verify(voucherService).findAllByUserIdAndStatus(ownerId, VoucherStatus.PAID);
+    }
+
+    @Test
+    void findAllByUserIdAndStatus_AsAnotherUser_Returns403() throws Exception {
+        UUID ownerId = UUID.randomUUID();
+        UUID strangerId = UUID.randomUUID();
+
+        mockMvc.perform(get("/api/vouchers/user/{userId}/status", ownerId)
+                        .param("status", "PAID")
+                        .with(user(customUser(strangerId, Role.USER))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.statusMessage").value("Access denied"));
+
+        verifyNoInteractions(voucherService);
+    }
+
+    // ---------- GET /api/vouchers/search ----------
+
+    @Test
+    @WithMockUser
+    void search_WithFilterAndPaging_PassesParametersToService() throws Exception {
+        VoucherDTO dto = new VoucherDTO();
+        dto.setTitle("Prague old town");
+        PageResponseDTO<VoucherDTO> page = new PageResponseDTO<>(new PageImpl<>(List.of(dto), PageRequest.of(1, 5), 6));
+
+        when(voucherService.search(any(VoucherFilterDTO.class), any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/vouchers/search")
+                        .param("tourType", "CULTURAL")
+                        .param("minPrice", "100")
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("sort", "price,asc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusCode").value("OK"))
+                .andExpect(jsonPath("$.results.page").value(1))
+                .andExpect(jsonPath("$.results.size").value(5))
+                .andExpect(jsonPath("$.results.totalElements").value(6))
+                .andExpect(jsonPath("$.results.totalPages").value(2))
+                .andExpect(jsonPath("$.results.content[0].title").value("Prague old town"));
+
+        ArgumentCaptor<VoucherFilterDTO> filterCaptor = ArgumentCaptor.forClass(VoucherFilterDTO.class);
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(voucherService).search(filterCaptor.capture(), pageableCaptor.capture());
+
+        assertEquals(TourType.CULTURAL, filterCaptor.getValue().getTourType());
+        assertEquals(0, new BigDecimal("100").compareTo(filterCaptor.getValue().getMinPrice()));
+        assertEquals(1, pageableCaptor.getValue().getPageNumber());
+        assertEquals(5, pageableCaptor.getValue().getPageSize());
+        assertEquals("price", pageableCaptor.getValue().getSort().iterator().next().getProperty());
+    }
+
+    @Test
+    @WithMockUser
+    void search_ArrivalFromAfterArrivalTo_Returns400() throws Exception {
+        mockMvc.perform(get("/api/vouchers/search")
+                        .param("arrivalFrom", "2027-08-31")
+                        .param("arrivalTo", "2027-06-01"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.statusCode").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.statusMessage").value(containsString("arrivalTo")));
+
+        verifyNoInteractions(voucherService);
+    }
+
+    @Test
+    @WithMockUser
+    void search_UnsupportedSortField_Returns400() throws Exception {
+        when(voucherService.search(any(VoucherFilterDTO.class), any(Pageable.class)))
+                .thenThrow(new IllegalArgumentException("Unsupported sort field: foo"));
+
+        mockMvc.perform(get("/api/vouchers/search").param("sort", "foo,asc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.statusMessage").value("Unsupported sort field: foo"));
+    }
+
+    @Test
+    @WithMockUser
+    void search_InvalidTourType_Returns400() throws Exception {
+        mockMvc.perform(get("/api/vouchers/search").param("tourType", "FOO"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.statusCode").value("BAD_REQUEST"));
+
+        verifyNoInteractions(voucherService);
+    }
+
+    @Test
+    void search_Unauthenticated_Returns401() throws Exception {
+        mockMvc.perform(get("/api/vouchers/search"))
+                .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(voucherService);
+    }
+
+    // ---------- POST /api/vouchers : custom @ValidDateRange ----------
+
+    @Test
+    @WithMockUser(authorities = "ROLE_ADMIN")
+    void createVoucher_ArrivalAfterEviction_Returns400() throws Exception {
+        VoucherRequestDTO voucherDTO = new VoucherRequestDTO();
+        voucherDTO.setTitle("Voucher title");
+        voucherDTO.setDescription("Description");
+        voucherDTO.setPrice(299.99);
+        voucherDTO.setTourType(TourType.ADVENTURE);
+        voucherDTO.setTransferType(TransferType.PLANE);
+        voucherDTO.setHotelType(HotelType.FIVE_STARS);
+        voucherDTO.setArrivalDate(LocalDate.of(2027, 9, 10));
+        voucherDTO.setEvictionDate(LocalDate.of(2027, 9, 1));
+        voucherDTO.setIsHot(false);
+
+        mockMvc.perform(post("/api/vouchers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(voucherDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.statusMessage").value(containsString("evictionDate")));
+
+        verifyNoInteractions(voucherService);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_ADMIN")
+    void createVoucher_ClientSendsIdStatusAndUser_IgnoresThem() throws Exception {
+        String body = "{\"id\":\"" + UUID.randomUUID() + "\",\"title\":\"Title\",\"description\":\"Description\","
+                + "\"price\":100.0,\"tourType\":\"ECO\",\"transferType\":\"BUS\",\"hotelType\":\"THREE_STARS\","
+                + "\"status\":\"PAID\",\"userId\":\"" + UUID.randomUUID() + "\","
+                + "\"arrivalDate\":\"2027-09-01\",\"evictionDate\":\"2027-09-05\",\"isHot\":false}";
+
+        when(voucherService.create(any(VoucherRequestDTO.class))).thenReturn(new VoucherDTO());
+
+        mockMvc.perform(post("/api/vouchers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isCreated());
+
+        verify(voucherService).create(any(VoucherRequestDTO.class));
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_ADMIN")
+    void createVoucher_UnknownTourType_Returns400() throws Exception {
+        String body = "{\"title\":\"Title\",\"description\":\"Description\",\"price\":100.0,\"tourType\":\"FOO\","
+                + "\"transferType\":\"BUS\",\"hotelType\":\"THREE_STARS\","
+                + "\"arrivalDate\":\"2027-09-01\",\"evictionDate\":\"2027-09-05\",\"isHot\":false}";
+
+        mockMvc.perform(post("/api/vouchers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.statusCode").value("BAD_REQUEST"));
+
+        verifyNoInteractions(voucherService);
     }
 
 }

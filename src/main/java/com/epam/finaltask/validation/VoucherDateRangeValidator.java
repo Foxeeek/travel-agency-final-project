@@ -1,13 +1,13 @@
 package com.epam.finaltask.validation;
 
-import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.dto.VoucherRequestDTO;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class VoucherDateRangeValidator implements ConstraintValidator<ValidDateRange, VoucherDTO> {
+public class VoucherDateRangeValidator implements ConstraintValidator<ValidDateRange, VoucherRequestDTO> {
 
     @Override
-    public boolean isValid(VoucherDTO dto, ConstraintValidatorContext context) {
+    public boolean isValid(VoucherRequestDTO dto, ConstraintValidatorContext context) {
         if (dto.getArrivalDate() == null || dto.getEvictionDate() == null) return true;
         if (!dto.getArrivalDate().isAfter(dto.getEvictionDate())) return true;
         context.disableDefaultConstraintViolation();

@@ -41,8 +41,8 @@ public class VoucherRestController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<VoucherDTO>> createVoucherValidData(@Valid @RequestBody VoucherDTO voucherDTO) {
-        VoucherDTO voucher = voucherService.create(voucherDTO);
+    public ResponseEntity<ApiResponse<VoucherDTO>> createVoucherValidData(@Valid @RequestBody VoucherRequestDTO request) {
+        VoucherDTO voucher = voucherService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("OK", "Voucher is successfully created", voucher));
     }
 
@@ -56,8 +56,8 @@ public class VoucherRestController {
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<VoucherDTO>> updateVoucher(@PathVariable String id, @Valid @RequestBody VoucherDTO voucherDTO) {
-        VoucherDTO voucher = voucherService.update(id, voucherDTO);
+    public ResponseEntity<ApiResponse<VoucherDTO>> updateVoucher(@PathVariable String id, @Valid @RequestBody VoucherRequestDTO request) {
+        VoucherDTO voucher = voucherService.update(id, request);
         return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher is successfully updated", voucher));
     }
 

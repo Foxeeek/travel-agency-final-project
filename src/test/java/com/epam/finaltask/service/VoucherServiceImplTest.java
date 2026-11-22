@@ -2,6 +2,15 @@ package com.epam.finaltask.service;
 
 
 import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.dto.VoucherRequestDTO;
+import com.epam.finaltask.dto.PageResponseDTO;
+import com.epam.finaltask.dto.VoucherFilterDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
@@ -67,44 +76,54 @@ public class VoucherServiceImplTest {
         return voucher;
     }
 
+    private VoucherRequestDTO buildVoucherRequest() {
+        VoucherRequestDTO request = new VoucherRequestDTO();
+        request.setTitle("Hello");
+        request.setDescription("New description");
+        request.setPrice(850.00);
+        request.setTourType(TourType.ADVENTURE);
+        request.setHotelType(HotelType.FIVE_STARS);
+        request.setTransferType(TransferType.PLANE);
+        request.setArrivalDate(LocalDate.of(2027, 7, 10));
+        request.setEvictionDate(LocalDate.of(2027, 7, 17));
+        request.setIsHot(true);
+        return request;
+    }
+
     @Test
-    void create_ValidVoucher_SavesAndReturnsDto() {
+    void create_ValidRequest_SetsRegisteredStatusSavesAndReturnsDto() {
         UUID id = UUID.randomUUID();
 
         Voucher voucher = new Voucher();
         voucher.setId(id);
 
+        VoucherRequestDTO request = buildVoucherRequest();
         VoucherDTO voucherDTO = buildVoucherDTO();
 
-        when(voucherMapper.toVoucher(voucherDTO)).thenReturn(voucher);
-        when(voucherRepository.save(voucher)).thenReturn(voucher);
+        when(voucherMapper.toVoucher(request)).thenReturn(voucher);
         when(voucherMapper.toVoucherDTO(voucher)).thenReturn(voucherDTO);
 
-        VoucherDTO result = voucherService.create(voucherDTO);
+        VoucherDTO result = voucherService.create(request);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("Hello", result.getTitle());
+        Assertions.assertSame(voucherDTO, result);
+        Assertions.assertEquals(VoucherStatus.REGISTERED, voucher.getStatus());
 
-        verify(voucherMapper).toVoucher(voucherDTO);
+        verify(voucherMapper).toVoucher(request);
         verify(voucherRepository).save(voucher);
         verify(voucherMapper).toVoucherDTO(voucher);
-
-
     }
 
     @Nested
     class UpdateTest {
 
-
         @Test
         void update_VoucherNotFound_ThrowsNotFoundException() {
-//        Given
             UUID id = UUID.randomUUID();
-            VoucherDTO voucherDTO = buildVoucherDTO();
-//        When
+            VoucherRequestDTO request = buildVoucherRequest();
+
             when(voucherRepository.findById(id)).thenReturn(Optional.empty());
-//        Then
-            assertThrows(NotFoundException.class, () -> voucherService.update(id.toString(), voucherDTO));
+
+            assertThrows(NotFoundException.class, () -> voucherService.update(id.toString(), request));
 
             verify(voucherRepository, never()).save(any());
         }
@@ -114,56 +133,45 @@ public class VoucherServiceImplTest {
             UUID id = UUID.randomUUID();
             Voucher voucher = new Voucher();
             voucher.setId(id);
+            VoucherRequestDTO request = buildVoucherRequest();
             VoucherDTO voucherDTO = buildVoucherDTO();
-            voucherDTO.setTransferType("PLANE");
 
-            when(voucherRepository.findById(id))
-                    .thenReturn(Optional.of(voucher));
+            when(voucherRepository.findById(id)).thenReturn(Optional.of(voucher));
+            when(voucherMapper.toVoucherDTO(voucher)).thenReturn(voucherDTO);
 
-            when(voucherMapper.toVoucherDTO(any(Voucher.class)))
-                    .thenReturn(voucherDTO);
+            VoucherDTO result = voucherService.update(id.toString(), request);
 
-            VoucherDTO result = voucherService.update(id.toString(), voucherDTO);
-
-            ArgumentCaptor<Voucher> captor =
-                    ArgumentCaptor.forClass(Voucher.class);
-
+            ArgumentCaptor<Voucher> captor = ArgumentCaptor.forClass(Voucher.class);
             verify(voucherRepository).save(captor.capture());
 
+            Assertions.assertSame(voucherDTO, result);
             Assertions.assertEquals("Hello", captor.getValue().getTitle());
             Assertions.assertEquals("New description", captor.getValue().getDescription());
             Assertions.assertEquals(0, new BigDecimal("850.00").compareTo(captor.getValue().getPrice()));
-
             Assertions.assertEquals(TourType.ADVENTURE, captor.getValue().getTourType());
             Assertions.assertEquals(HotelType.FIVE_STARS, captor.getValue().getHotelType());
-            Assertions.assertEquals(VoucherStatus.REGISTERED, captor.getValue().getStatus());
             Assertions.assertEquals(TransferType.PLANE, captor.getValue().getTransferType());
             Assertions.assertEquals(LocalDate.of(2027, 7, 10), captor.getValue().getArrivalDate());
             Assertions.assertEquals(LocalDate.of(2027, 7, 17), captor.getValue().getEvictionDate());
-
             Assertions.assertTrue(captor.getValue().getIsHot());
-
-
-            Assertions.assertNotNull(result);
         }
 
         @Test
-        void update_UnknownTransferType_ThrowsIllegalArgumentException() {
+        void update_DoesNotChangeStatusOrOwner() {
             UUID id = UUID.randomUUID();
-
+            User owner = new User();
             Voucher voucher = new Voucher();
             voucher.setId(id);
+            voucher.setStatus(VoucherStatus.PAID);
+            voucher.setUser(owner);
 
-            VoucherDTO voucherDTO = buildVoucherDTO();
+            when(voucherRepository.findById(id)).thenReturn(Optional.of(voucher));
+            when(voucherMapper.toVoucherDTO(voucher)).thenReturn(buildVoucherDTO());
 
-            when(voucherRepository.findById(id))
-                    .thenReturn(Optional.of(voucher));
+            voucherService.update(id.toString(), buildVoucherRequest());
 
-
-            assertThrows(IllegalArgumentException.class, () -> voucherService.update(id.toString(), voucherDTO));
-
-            verify(voucherRepository).findById(id);
-            verify(voucherRepository, never()).save(any(Voucher.class));
+            Assertions.assertEquals(VoucherStatus.PAID, voucher.getStatus());
+            Assertions.assertSame(owner, voucher.getUser());
         }
     }
 
@@ -518,4 +526,64 @@ public class VoucherServiceImplTest {
     }
 
 
+    @Nested
+    @SuppressWarnings("unchecked")
+    class SearchTest {
+
+        @Test
+        void search_ValidSort_ReturnsPageAndSortsHotFirst() {
+            VoucherFilterDTO filter = new VoucherFilterDTO();
+            Pageable requested = PageRequest.of(1, 5, Sort.by("price"));
+            Voucher voucher = buildVoucher();
+            VoucherDTO dto = buildVoucherDTO();
+            Page<Voucher> page = new PageImpl<>(List.of(voucher), PageRequest.of(1, 5), 6);
+
+            when(voucherRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+            when(voucherMapper.toVoucherDTO(voucher)).thenReturn(dto);
+
+            PageResponseDTO<VoucherDTO> result = voucherService.search(filter, requested);
+
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            verify(voucherRepository).findAll(any(Specification.class), captor.capture());
+
+            Pageable used = captor.getValue();
+            Assertions.assertEquals(1, used.getPageNumber());
+            Assertions.assertEquals(5, used.getPageSize());
+            Sort.Order first = used.getSort().iterator().next();
+            Assertions.assertEquals("isHot", first.getProperty());
+            Assertions.assertEquals(Sort.Direction.DESC, first.getDirection());
+            Assertions.assertNotNull(used.getSort().getOrderFor("price"));
+
+            Assertions.assertEquals(List.of(dto), result.getContent());
+            Assertions.assertEquals(1, result.getPage());
+            Assertions.assertEquals(5, result.getSize());
+            Assertions.assertEquals(6, result.getTotalElements());
+            Assertions.assertEquals(2, result.getTotalPages());
+        }
+
+        @Test
+        void search_NoSortRequested_SortsOnlyByHotFlag() {
+            Page<Voucher> page = new PageImpl<>(List.of());
+
+            when(voucherRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+            voucherService.search(new VoucherFilterDTO(), PageRequest.of(0, 10));
+
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            verify(voucherRepository).findAll(any(Specification.class), captor.capture());
+
+            List<Sort.Order> orders = captor.getValue().getSort().toList();
+            Assertions.assertEquals(1, orders.size());
+            Assertions.assertEquals("isHot", orders.get(0).getProperty());
+        }
+
+        @Test
+        void search_UnsupportedSortField_ThrowsIllegalArgumentException() {
+            Pageable requested = PageRequest.of(0, 10, Sort.by("user.password"));
+
+            assertThrows(IllegalArgumentException.class, () -> voucherService.search(new VoucherFilterDTO(), requested));
+
+            verify(voucherRepository, never()).findAll(any(Specification.class), any(Pageable.class));
+        }
+    }
 }

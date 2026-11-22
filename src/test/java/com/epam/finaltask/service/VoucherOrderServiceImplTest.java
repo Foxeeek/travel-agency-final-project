@@ -256,6 +256,8 @@ public class VoucherOrderServiceImplTest {
 
             verify(voucherRepository).save(captor.capture());
 
+            verify(userRepository).save(user);
+
             Assertions.assertSame(voucherDTO, result);
             Assertions.assertEquals(VoucherStatus.CANCELED, captor.getValue().getStatus());
             Assertions.assertEquals(0, BigDecimal.valueOf(1000).compareTo(user.getBalance()));

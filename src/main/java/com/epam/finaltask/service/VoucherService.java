@@ -3,6 +3,7 @@ package com.epam.finaltask.service;
 import com.epam.finaltask.dto.PageResponseDTO;
 import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.dto.VoucherFilterDTO;
+import com.epam.finaltask.dto.VoucherRequestDTO;
 import com.epam.finaltask.model.HotelType;
 import com.epam.finaltask.model.TourType;
 import com.epam.finaltask.model.VoucherStatus;
@@ -14,9 +15,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface VoucherService {
-    VoucherDTO create(VoucherDTO voucherDTO);
+    VoucherDTO create(VoucherRequestDTO request);
 
-    VoucherDTO update(String id, VoucherDTO voucherDTO);
+    VoucherDTO update(String id, VoucherRequestDTO request);
 
     VoucherDTO changeHotStatus(String id, VoucherDTO voucherDTO);
 

@@ -2,6 +2,7 @@ package com.epam.finaltask.service;
 
 import com.epam.finaltask.dto.UserDTO;
 import com.epam.finaltask.dto.UserResponseDTO;
+import com.epam.finaltask.dto.UserUpdateRequestDTO;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.UserMapper;
@@ -242,5 +243,98 @@ public class UserServiceImplTest {
         }
 
 
+    }
+
+
+    @Nested
+    class ProfileTest {
+
+        @Test
+        void getProfile_UserExists_ReturnsResponseDto() {
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+            UserResponseDTO dto = new UserResponseDTO();
+
+            when(userRepository.findById(id)).thenReturn(Optional.of(user));
+            when(userMapper.toUserResponseDTO(user)).thenReturn(dto);
+
+            UserResponseDTO result = userService.getProfile(id);
+
+            assertSame(dto, result);
+            verify(userRepository).findById(id);
+        }
+
+        @Test
+        void getProfile_UserNotFound_ThrowsNotFoundException() {
+            UUID id = UUID.randomUUID();
+
+            when(userRepository.findById(id)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> userService.getProfile(id));
+
+            verifyNoInteractions(userMapper);
+        }
+
+        @Test
+        void updateProfile_PhoneAndPassword_UpdatesBothAndEncodesPassword() {
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+            user.setPhoneNumber("+380501112233");
+            user.setPassword("oldHash");
+
+            UserUpdateRequestDTO request = new UserUpdateRequestDTO();
+            request.setPhoneNumber("+380509998877");
+            request.setPassword("NewPass456!");
+
+            UserResponseDTO dto = new UserResponseDTO();
+
+            when(userRepository.findById(id)).thenReturn(Optional.of(user));
+            when(passwordEncoder.encode("NewPass456!")).thenReturn("newHash");
+            when(userMapper.toUserResponseDTO(user)).thenReturn(dto);
+
+            UserResponseDTO result = userService.updateProfile(id, request);
+
+            ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+            verify(userRepository).save(captor.capture());
+
+            assertSame(dto, result);
+            assertEquals("+380509998877", captor.getValue().getPhoneNumber());
+            assertEquals("newHash", captor.getValue().getPassword());
+        }
+
+        @Test
+        void updateProfile_OnlyPhone_DoesNotTouchPassword() {
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+            user.setPhoneNumber("+380501112233");
+            user.setPassword("oldHash");
+
+            UserUpdateRequestDTO request = new UserUpdateRequestDTO();
+            request.setPhoneNumber("+380509998877");
+
+            when(userRepository.findById(id)).thenReturn(Optional.of(user));
+            when(userMapper.toUserResponseDTO(user)).thenReturn(new UserResponseDTO());
+
+            userService.updateProfile(id, request);
+
+            assertEquals("+380509998877", user.getPhoneNumber());
+            assertEquals("oldHash", user.getPassword());
+            verifyNoInteractions(passwordEncoder);
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void updateProfile_UserNotFound_ThrowsNotFoundException() {
+            UUID id = UUID.randomUUID();
+
+            when(userRepository.findById(id)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> userService.updateProfile(id, new UserUpdateRequestDTO()));
+
+            verify(userRepository, never()).save(any());
+        }
     }
 }

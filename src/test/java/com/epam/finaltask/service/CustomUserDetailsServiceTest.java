@@ -5,6 +5,7 @@ import com.epam.finaltask.model.Role;
 import com.epam.finaltask.model.User;
 import com.epam.finaltask.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
+import com.epam.finaltask.auth.CustomUserDetails;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -59,4 +60,37 @@ public class CustomUserDetailsServiceTest {
         verify(userRepository).findUserByUsername(username);
     }
 
+
+    @Test
+    void loadUserByUsername_BlockedUser_ReturnsDisabledDetails() {
+        String username = "blockedUser";
+        User user = new User();
+        user.setUsername(username);
+        user.setRole(Role.USER);
+        user.setActive(false);
+
+        when(userRepository.findUserByUsername(username)).thenReturn(Optional.of(user));
+
+        UserDetails result = customUserDetailsService.loadUserByUsername(username);
+
+        Assertions.assertFalse(result.isEnabled());
+    }
+
+    @Test
+    void customUserDetails_ExposesUserAndHasNoExpiryOrLock() {
+        User user = new User();
+        user.setUsername("john");
+        user.setPassword("hash");
+        user.setRole(Role.MANAGER);
+        user.setActive(true);
+
+        CustomUserDetails details = new CustomUserDetails(user);
+
+        Assertions.assertSame(user, details.getUser());
+        Assertions.assertEquals("hash", details.getPassword());
+        Assertions.assertEquals("ROLE_MANAGER", details.getAuthorities().iterator().next().getAuthority());
+        Assertions.assertTrue(details.isAccountNonExpired());
+        Assertions.assertTrue(details.isAccountNonLocked());
+        Assertions.assertTrue(details.isCredentialsNonExpired());
+    }
 }

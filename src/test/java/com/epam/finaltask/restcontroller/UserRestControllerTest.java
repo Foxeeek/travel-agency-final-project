@@ -1,11 +1,17 @@
 package com.epam.finaltask.restcontroller;
 
+import com.epam.finaltask.auth.CustomUserDetails;
 import com.epam.finaltask.dto.UserResponseDTO;
+import com.epam.finaltask.dto.UserUpdateRequestDTO;
+import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.exception.NotFoundException;
+import com.epam.finaltask.model.Role;
+import com.epam.finaltask.model.User;
 import com.epam.finaltask.service.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.epam.finaltask.service.VoucherService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -19,10 +25,16 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,11 +50,22 @@ public class UserRestControllerTest {
     @MockBean
     private UserService userService;
 
+    @MockBean
+    private VoucherService voucherService;
+
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private CustomUserDetails customUser(UUID id, Role role) {
+        User user = new User();
+        user.setId(id);
+        user.setUsername("john_doe");
+        user.setRole(role);
+        user.setActive(true);
+        return new CustomUserDetails(user);
+    }
+
+    // ---------- PATCH /api/users/{id}/status (block / unblock, admin only) ----------
 
     @Test
     @WithMockUser(authorities = "ROLE_ADMIN")
@@ -54,9 +77,25 @@ public class UserRestControllerTest {
 
         mockMvc.perform(patch("/api/users/{id}/status", id).contentType(MediaType.APPLICATION_JSON).content("{\"active\":false}"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusCode").value("OK"))
                 .andExpect(jsonPath("$.statusMessage").value("User is successfully blocked"));
 
         verify(userService).changeAccountStatus(eq(id), eq(false));
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_ADMIN")
+    void changeUserStatus_Unblock_ReturnsUnblockedMessage() throws Exception {
+        UUID id = UUID.randomUUID();
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setActive(true);
+
+        when(userService.changeAccountStatus(eq(id), eq(true))).thenReturn(dto);
+
+        mockMvc.perform(patch("/api/users/{id}/status", id).contentType(MediaType.APPLICATION_JSON).content("{\"active\":true}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusMessage").value("User is successfully unblocked"))
+                .andExpect(jsonPath("$.results.active").value(true));
     }
 
     @Test
@@ -95,5 +134,102 @@ public class UserRestControllerTest {
                 .andExpect(jsonPath("$.statusMessage").value("User not found"));
 
         verify(userService).changeAccountStatus(eq(id), eq(false));
+    }
+
+    // ---------- GET /api/users/me ----------
+
+    @Test
+    void getProfile_AuthenticatedUser_Returns200() throws Exception {
+        UUID userId = UUID.randomUUID();
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setUsername("john_doe");
+
+        when(userService.getProfile(userId)).thenReturn(dto);
+
+        mockMvc.perform(get("/api/users/me").with(user(customUser(userId, Role.USER))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusMessage").value("Profile is successfully found"))
+                .andExpect(jsonPath("$.results.username").value("john_doe"));
+
+        verify(userService).getProfile(userId);
+    }
+
+    @Test
+    void getProfile_Unauthenticated_Returns401() throws Exception {
+        mockMvc.perform(get("/api/users/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.statusCode").value("UNAUTHORIZED"));
+
+        verifyNoInteractions(userService);
+    }
+
+    // ---------- PATCH /api/users/me ----------
+
+    @Test
+    void updateProfile_ValidData_Returns200() throws Exception {
+        UUID userId = UUID.randomUUID();
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setPhoneNumber("+380509998877");
+
+        when(userService.updateProfile(eq(userId), any(UserUpdateRequestDTO.class))).thenReturn(dto);
+
+        mockMvc.perform(patch("/api/users/me")
+                        .with(user(customUser(userId, Role.USER)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"phoneNumber\":\"+380509998877\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusMessage").value("Profile is successfully updated"))
+                .andExpect(jsonPath("$.results.phoneNumber").value("+380509998877"));
+
+        ArgumentCaptor<UserUpdateRequestDTO> captor = ArgumentCaptor.forClass(UserUpdateRequestDTO.class);
+        verify(userService).updateProfile(eq(userId), captor.capture());
+        assertEquals("+380509998877", captor.getValue().getPhoneNumber());
+        assertNull(captor.getValue().getPassword());
+    }
+
+    @Test
+    void updateProfile_WeakPassword_Returns400() throws Exception {
+        UUID userId = UUID.randomUUID();
+
+        mockMvc.perform(patch("/api/users/me")
+                        .with(user(customUser(userId, Role.USER)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"password\":\"123\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.statusCode").value("BAD_REQUEST"));
+
+        verifyNoInteractions(userService);
+    }
+
+    @Test
+    void updateProfile_UnsupportedContentType_Returns415() throws Exception {
+        UUID userId = UUID.randomUUID();
+
+        mockMvc.perform(patch("/api/users/me")
+                        .with(user(customUser(userId, Role.USER)))
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content("phone"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.statusCode").value("UNSUPPORTED_MEDIA_TYPE"));
+
+        verifyNoInteractions(userService);
+    }
+
+    // ---------- GET /api/users/me/vouchers ----------
+
+    @Test
+    void getMyVouchers_ReturnsVouchersOfCurrentUser() throws Exception {
+        UUID userId = UUID.randomUUID();
+        VoucherDTO voucher = new VoucherDTO();
+        voucher.setTitle("Rome weekend");
+
+        when(voucherService.findAllByUserId(userId.toString())).thenReturn(List.of(voucher));
+
+        mockMvc.perform(get("/api/users/me/vouchers").with(user(customUser(userId, Role.USER))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusMessage").value("Vouchers are successfully found"))
+                .andExpect(jsonPath("$.results[0].title").value("Rome weekend"));
+
+        verify(voucherService).findAllByUserId(userId.toString());
     }
 }

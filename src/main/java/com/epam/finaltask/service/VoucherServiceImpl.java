@@ -3,6 +3,7 @@ package com.epam.finaltask.service;
 import com.epam.finaltask.dto.PageResponseDTO;
 import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.dto.VoucherFilterDTO;
+import com.epam.finaltask.dto.VoucherRequestDTO;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
@@ -25,7 +26,7 @@ import java.util.UUID;
 @Service
 public class VoucherServiceImpl implements VoucherService {
 
-    Set<String> SORT_FIELDS = Set.of("price", "title", "arrivalDate", "evictionDate", "tourType", "hotelType", "transferType", "status");
+    private static final Set<String> SORT_FIELDS =Set.of("price", "title", "arrivalDate", "evictionDate", "tourType", "hotelType", "transferType", "status");
     private final VoucherMapper voucherMapper;
     private final VoucherRepository voucherRepository;
 
@@ -50,30 +51,31 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
-    public VoucherDTO create(VoucherDTO voucherDTO) {
-        Voucher voucher = voucherMapper.toVoucher(voucherDTO);
+    public VoucherDTO create(VoucherRequestDTO request){
+        Voucher voucher = voucherMapper.toVoucher(request);
+        voucher.setStatus(VoucherStatus.REGISTERED);
         voucherRepository.save(voucher);
+
         log.info("Voucher created successfully with ID: {}", voucher.getId());
         return voucherMapper.toVoucherDTO(voucher);
     }
 
 
     @Override
-    public VoucherDTO update(String id, VoucherDTO voucherDTO) {
+    public VoucherDTO update(String id, VoucherRequestDTO request) {
 
         Voucher voucher = voucherById(UUID.fromString(id));
-        voucher.setTitle(voucherDTO.getTitle());
-        voucher.setDescription(voucherDTO.getDescription());
+        voucher.setTitle(request.getTitle());
+        voucher.setDescription(request.getDescription());
 
-        voucher.setPrice(BigDecimal.valueOf(voucherDTO.getPrice()));
-        voucher.setTourType(TourType.valueOf(voucherDTO.getTourType()));
-        voucher.setHotelType(HotelType.valueOf(voucherDTO.getHotelType()));
-        voucher.setStatus(VoucherStatus.valueOf(voucherDTO.getStatus()));
-        voucher.setTransferType(TransferType.valueOf(voucherDTO.getTransferType()));
-        voucher.setArrivalDate(voucherDTO.getArrivalDate());
-        voucher.setEvictionDate(voucherDTO.getEvictionDate());
+        voucher.setPrice(BigDecimal.valueOf(request.getPrice()));
+        voucher.setTourType(request.getTourType());
+        voucher.setHotelType(request.getHotelType());
+        voucher.setTransferType(request.getTransferType());
+        voucher.setArrivalDate(request.getArrivalDate());
+        voucher.setEvictionDate(request.getEvictionDate());
 
-        voucher.setIsHot(voucherDTO.getIsHot());
+        voucher.setIsHot(request.getIsHot());
         voucherRepository.save(voucher);
 
         log.info("Voucher {} updated successfully", voucher.getId());

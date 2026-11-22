@@ -1,9 +1,8 @@
-package com.epam.finaltask.service;
+package com.epam.finaltask.token;
 
 import com.epam.finaltask.auth.CustomUserDetails;
 import com.epam.finaltask.model.Role;
 import com.epam.finaltask.model.User;
-import com.epam.finaltask.token.JwtService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
