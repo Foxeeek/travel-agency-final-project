@@ -111,6 +111,13 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    public VoucherDTO findById(String id) {
+        Voucher voucher = voucherById(UUID.fromString(id));
+        log.debug("Found voucher by id {}", id);
+        return voucherMapper.toVoucherDTO(voucher);
+    }
+
+    @Override
     public List<VoucherDTO> findAllByUserId(String userId) {
         List<VoucherDTO> vouchers = voucherRepository.findAllByUserId(UUID.fromString(userId)).stream()
                 .map(voucherMapper::toVoucherDTO).toList();

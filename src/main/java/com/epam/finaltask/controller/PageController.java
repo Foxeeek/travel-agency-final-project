@@ -7,6 +7,9 @@ import com.epam.finaltask.dto.VoucherFilterDTO;
 import com.epam.finaltask.dto.VoucherRequestDTO;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
+import com.epam.finaltask.model.HotelType;
+import com.epam.finaltask.model.TourType;
+import com.epam.finaltask.model.TransferType;
 import com.epam.finaltask.model.VoucherStatus;
 import com.epam.finaltask.service.UserService;
 import com.epam.finaltask.service.VoucherOrderService;
@@ -185,6 +188,7 @@ public class PageController {
         }
         return "redirect:/manage";
     }
+
     //    -------------------
     @GetMapping("/manage/vouchers/new")
     @PreAuthorize("hasRole('ADMIN')")
@@ -196,8 +200,8 @@ public class PageController {
     @PostMapping("/manage/vouchers")
     @PreAuthorize("hasRole('ADMIN')")
     public String createVoucher(@Valid @ModelAttribute("voucherForm") VoucherRequestDTO form,
-                             BindingResult result,
-                             RedirectAttributes redirect) {
+                                BindingResult result,
+                                RedirectAttributes redirect) {
 
         if (result.hasErrors()) {
             return "voucher-form";
@@ -205,6 +209,50 @@ public class PageController {
 
         voucherService.create(form);
         redirect.addFlashAttribute("message", "Created");
+        return "redirect:/manage";
+    }
+
+    @GetMapping("/manage/vouchers/{id}/edit")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String editVoucherForm(@PathVariable UUID id, Model model) {
+
+        VoucherDTO b = voucherService.findById(id.toString());
+
+        VoucherRequestDTO form = new VoucherRequestDTO();
+        form.setTitle(b.getTitle());
+        form.setDescription(b.getDescription());
+        form.setPrice(b.getPrice());
+        form.setTourType(TourType.valueOf(b.getTourType()));
+        form.setHotelType(HotelType.valueOf(b.getHotelType()));
+        form.setTransferType(TransferType.valueOf(b.getTransferType()));
+        form.setArrivalDate(b.getArrivalDate());
+        form.setEvictionDate(b.getEvictionDate());
+        form.setIsHot(b.getIsHot());
+
+        model.addAttribute("voucherForm", form);
+        model.addAttribute("voucherId", id);
+        return "voucher-form";
+    }
+
+    @PostMapping("/manage/vouchers/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String updateVoucher(@PathVariable UUID id,
+                                @Valid @ModelAttribute("voucherForm") VoucherRequestDTO form,
+                                BindingResult result,
+                                Model model,
+                                RedirectAttributes redirect) {
+
+        if (result.hasErrors()) {
+            model.addAttribute("voucherId", id);
+            return "voucher-form";
+        }
+
+        try {
+            voucherService.update(id.toString(), form);
+            redirect.addFlashAttribute("message", "Updated");
+        } catch (NotFoundException e) {
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/manage";
     }
 }

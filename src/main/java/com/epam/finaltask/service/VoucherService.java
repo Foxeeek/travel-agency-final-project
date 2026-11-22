@@ -21,6 +21,8 @@ public interface VoucherService {
 
     VoucherDTO changeHotStatus(String id, VoucherDTO voucherDTO);
 
+    VoucherDTO findById(String id);
+
     void delete(String voucherId);
 
     List<VoucherDTO> findAllByUserId(String userId);

@@ -11,9 +11,10 @@
 
 <div class="container mt-4" style="max-width: 600px;">
 
-    <h1 class="mb-4">New voucher</h1>
+    <h1 class="mb-4"
+        th:text="${voucherId == null} ? 'New voucher' : 'Edit voucher'">New voucher</h1>
 
-    <form th:action="@{/manage/vouchers}"
+    <form th:action="${voucherId == null} ? @{/manage/vouchers} : @{/manage/vouchers/{id}(id=${voucherId})}"
           th:object="${voucherForm}"
           method="post">
         <div class="mb-3">
@@ -134,7 +135,11 @@
             <label class="form-check-label" for="isHot">Hot</label>
         </div>
 
-        <button type="submit" class="btn btn-primary">Create</button>
+        <button type="submit"
+                class="btn btn-primary"
+                th:text="${voucherId == null} ? 'Create' : 'Save'">
+            Create
+        </button>
         <a class="btn btn-outline-secondary" th:href="@{/manage}">Cancel</a>
 
     </form>

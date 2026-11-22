@@ -18,6 +18,7 @@
         New voucher
     </a>
 
+
     <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
     <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
     <div class="table-responsive">
@@ -83,6 +84,12 @@
                         Delete
                     </button>
                 </form>
+                <a class="btn btn-sm btn-outline-primary"
+                   th:href="@{/manage/vouchers/{id}/edit(id=${v.id})}"
+                   sec:authorize="hasRole('ADMIN')"
+                   th:if="${v.userId == null}">
+                    Edit
+                </a>
 
             </td>
 
