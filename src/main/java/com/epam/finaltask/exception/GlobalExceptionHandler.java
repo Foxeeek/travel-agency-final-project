@@ -1,7 +1,13 @@
 package com.epam.finaltask.exception;
 
 import com.epam.finaltask.dto.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -12,11 +18,14 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,9 +41,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNoResourceFound(NoResourceFoundException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ApiResponse<>("NOT_FOUND", "Resource not found", null));
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFound(NoResourceFoundException e,
+                                                                   HttpServletRequest request,
+                                                                   HttpServletResponse response) throws IOException {
+
+        if (request.getRequestURI().startsWith("/api/")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>("NOT_FOUND", "Resource not found", null));
+        }
+        response.sendError(HttpStatus.NOT_FOUND.value());
+        return null;
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -108,6 +124,38 @@ public class GlobalExceptionHandler {
         log.warn("Content type is not supported: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
                 .body(new ApiResponse<>("UNSUPPORTED_MEDIA_TYPE", "Content type is not supported", null));
+    }
+
+
+    @ControllerAdvice(basePackages = "com.epam.finaltask.controller")              // тільки для сторінкових контролерів
+    @Order(Ordered.HIGHEST_PRECEDENCE)                         // спрацьовує раніше за REST-обробник
+    public class PageExceptionHandler {
+
+        private static final Logger log = LoggerFactory.getLogger(PageExceptionHandler.class);
+
+        @ExceptionHandler(IllegalArgumentException.class)
+        public ModelAndView handleBadRequest(IllegalArgumentException e) {
+            return errorPage(HttpStatus.BAD_REQUEST, e.getMessage());       // наш текст безпечний
+        }
+
+        @ExceptionHandler(AccessDeniedException.class)
+        public ModelAndView handleAccessDenied(AccessDeniedException e) {
+            return errorPage(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        @ExceptionHandler(Exception.class)
+        public ModelAndView handleOther(Exception e) {
+            log.error("Unexpected error", e);                               // стек пишемо ТІЛЬКИ в лог
+            return errorPage(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong");
+        }
+
+        private ModelAndView errorPage(HttpStatus status, String message) {
+            ModelAndView mav = new ModelAndView("error");                   // templates/error.html
+            mav.setStatus(status);                                          // код відповіді (400/403/500)
+            mav.addObject("status", status.value());
+            mav.addObject("message", message);
+            return mav;
+        }
     }
 
 
