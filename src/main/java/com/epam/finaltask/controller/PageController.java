@@ -255,4 +255,33 @@ public class PageController {
         }
         return "redirect:/manage";
     }
+
+
+    @GetMapping("/manage/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String users(Model model) {
+        model.addAttribute("users", userService.findAll());
+        return "users";
+    }
+
+    @PostMapping("/manage/users/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String changeUsersStatus(@PathVariable UUID id,
+                                    @RequestParam boolean active,
+                                    @AuthenticationPrincipal CustomUserDetails principal,
+                                    RedirectAttributes redirect) {
+
+        if (id.equals(principal.getUser().getId())) {
+            redirect.addFlashAttribute("error", "You cannot block yourself");
+            return "redirect:/manage/users";
+        }
+
+        try {
+            userService.changeAccountStatus(id, active);
+            redirect.addFlashAttribute("message", active ? "Unblocked" : "Blocked");
+        } catch (NotFoundException e) {
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/manage/users";
+    }
 }

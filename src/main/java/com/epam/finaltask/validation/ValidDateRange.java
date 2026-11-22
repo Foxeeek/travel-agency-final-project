@@ -13,6 +13,8 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = {VoucherDateRangeValidator.class, FilterDateRangeValidator.class})
 public @interface ValidDateRange {
     String message() default "eviction date must not be before arrival date";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

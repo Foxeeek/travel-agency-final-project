@@ -42,6 +42,11 @@
             </a>
         </li>
 
+        <li class="nav-item"
+            sec:authorize="hasRole('ADMIN')">
+            <a class="nav-link" th:href="@{/manage/users}">Users</a>
+        </li>
+
     </ul>
 
     <span class="navbar-text text-white me-3"

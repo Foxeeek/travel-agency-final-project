@@ -27,7 +27,7 @@ import java.util.UUID;
 @Service
 public class VoucherServiceImpl implements VoucherService {
 
-    private static final Set<String> SORT_FIELDS =Set.of("price", "title", "arrivalDate", "evictionDate", "tourType", "hotelType", "transferType", "status");
+    private static final Set<String> SORT_FIELDS = Set.of("price", "title", "arrivalDate", "evictionDate", "tourType", "hotelType", "transferType", "status");
     private final VoucherMapper voucherMapper;
     private final VoucherRepository voucherRepository;
 
@@ -52,7 +52,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
-    public VoucherDTO create(VoucherRequestDTO request){
+    public VoucherDTO create(VoucherRequestDTO request) {
         Voucher voucher = voucherMapper.toVoucher(request);
         voucher.setStatus(VoucherStatus.REGISTERED);
         voucherRepository.save(voucher);
@@ -88,7 +88,7 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public void delete(String voucherId) {
         Voucher voucher = voucherById(UUID.fromString(voucherId));
-        if (voucher.getUser() != null){
+        if (voucher.getUser() != null) {
             log.warn("Voucher {} is ordered and cannot be deleted", voucher.getId());
             throw new ConflictException("Voucher is ordered and cannot be deleted");
         }
@@ -198,7 +198,7 @@ public class VoucherServiceImpl implements VoucherService {
         Sort sort = Sort.by(Sort.Order.desc("isHot")).and(pageable.getSort());
         Pageable sorted = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
-        Page<Voucher> page = voucherRepository.findAll(specification,sorted);
+        Page<Voucher> page = voucherRepository.findAll(specification, sorted);
         Page<VoucherDTO> dtoPage = page.map(voucherMapper::toVoucherDTO);
 
         log.debug("Filtered");
@@ -206,9 +206,9 @@ public class VoucherServiceImpl implements VoucherService {
         return new PageResponseDTO<>(dtoPage);
     }
 
-    private void checkSortFields(Sort sort){
-        for (Sort.Order order : sort){
-            if (!SORT_FIELDS.contains(order.getProperty())){
+    private void checkSortFields(Sort sort) {
+        for (Sort.Order order : sort) {
+            if (!SORT_FIELDS.contains(order.getProperty())) {
                 log.warn("Unsupported sort field: {}", order.getProperty());
                 throw new IllegalArgumentException("Unsupported sort field: " + order.getProperty());
             }

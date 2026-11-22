@@ -4,6 +4,7 @@ import com.epam.finaltask.dto.UserDTO;
 import com.epam.finaltask.dto.UserResponseDTO;
 import com.epam.finaltask.dto.UserUpdateRequestDTO;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface UserService {
@@ -16,6 +17,8 @@ public interface UserService {
     UserDTO getUserById(UUID id);
 
     UserResponseDTO getProfile(UUID id);
+
+    List<UserResponseDTO> findAll();
 
     UserResponseDTO updateProfile(UUID id, UserUpdateRequestDTO request);
 }

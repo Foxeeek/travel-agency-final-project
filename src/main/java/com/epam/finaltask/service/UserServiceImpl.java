@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -88,6 +89,11 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO getProfile(UUID id) {
         User user = userById(id);
         return userMapper.toUserResponseDTO(user);
+    }
+
+    @Override
+    public List<UserResponseDTO> findAll() {
+        return userRepository.findAll().stream().map(userMapper::toUserResponseDTO).toList();
     }
 
     @Override

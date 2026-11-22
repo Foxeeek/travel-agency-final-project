@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Users')}">
+</head>
+
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}">
+</nav>
+
+<div class="container mt-4">
+    <h1>Users</h1>
+
+    <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
+    <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+
+            <thead>
+            <tr>
+                <th>Login</th>
+                <th>Role</th>
+                <th>Phone</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+
+            <tbody>
+
+            <tr th:each="u : ${users}">
+
+                <td th:text="${u.username}"></td>
+                <td th:text="${u.role}"></td>
+                <td th:text="${u.phoneNumber}"></td>
+                <td th:text="${u.balance}"></td>
+
+                <td>
+            <span class="badge"
+                  th:text="${u.active} ? 'Active' : 'Blocked'"
+                  th:classappend="${u.active} ? 'bg-success' : 'bg-danger'">
+            </span>
+                </td>
+
+                <td>
+                    <form th:action="@{/manage/users/{id}/status(id=${u.id})}"
+                          method="post">
+
+                        <input type="hidden" name="active" th:value="${!u.active}">
+
+                        <button class="btn btn-sm"
+                                th:classappend="${u.active} ? 'btn-outline-danger' : 'btn-outline-success'"
+                                th:text="${u.active} ? 'Block' : 'Unblock'">
+                        </button>
+
+                    </form>
+                </td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}">
+</th:block>
+
+</body>
+</html>
+
+

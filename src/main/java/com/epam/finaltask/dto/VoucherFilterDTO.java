@@ -4,8 +4,8 @@ import com.epam.finaltask.model.HotelType;
 import com.epam.finaltask.model.TourType;
 import com.epam.finaltask.model.TransferType;
 import com.epam.finaltask.model.VoucherStatus;
-import org.springframework.format.annotation.DateTimeFormat;
 import com.epam.finaltask.validation.ValidDateRange;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
