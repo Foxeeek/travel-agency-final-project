@@ -1,20 +1,148 @@
 <!DOCTYPE html>
 
-<html xmlns:th="http://www.thymeleaf.org">
-
+<html <html xmlns:th="http://www.thymeleaf.org"
+            xmlns:sec="http://www.thymeleaf.org/extras/spring-security">>
 <head th:replace="~{fragments/layout :: head('vouchers')}">
+
 </head>
-<!-- Читається так: "замість цього <head> встав шматок head з файлу layout
-     і передай йому заголовок 'Vouchers'" -->
+
 
 <body>
 
 <nav th:replace="~{fragments/layout :: navbar}">
 </nav>
-<!-- замість цього <nav> встав меню -->
 
 <div class="container mt-4">
     <h1>Vouchers</h1>
+    <form th:action="@{/vouchers}"
+          th:object="${filter}"
+          method="get"
+          class="row g-2 mb-3">
+
+        <div class="col-md-3">
+
+            <select th:field="*{hotelType}"
+                    class="form-select">
+
+                <option value="">Any hotel</option>
+
+                <option th:each="h : ${T(com.epam.finaltask.model.HotelType).values()}"
+                        th:value="${h}"
+                        th:text="${h}">
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <select th:field="*{tourType}"
+                    class="form-select">
+
+                <option value="">Any tour</option>
+
+                <option th:each="h : ${T(com.epam.finaltask.model.TourType).values()}"
+                        th:value="${h}"
+                        th:text="${h}">
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <select th:field="*{transferType}"
+                    class="form-select">
+
+                <option value="">Any transfer</option>
+
+                <option th:each="h : ${T(com.epam.finaltask.model.TransferType).values()}"
+                        th:value="${h}"
+                        th:text="${h}">
+                </option>
+
+            </select>
+
+        </div>
+
+
+
+
+        <div class="col-md-2">
+
+            <input type="number"
+                   th:field="*{minPrice}"
+                   class="form-control"
+                   placeholder="Min price">
+
+        </div>
+
+        <div class="col-md-2">
+            <input type="number"
+                   th:field="*{maxPrice}"
+                   class="form-control"
+                   placeholder="Max price">
+
+        </div>
+        <div class="col-md-2">
+            <input type="date"
+                   th:field="*{arrivalFrom}"
+                   class="form-control">
+
+        </div>
+        <div class="col-md-2">
+            <input type="date"
+                   th:field="*{arrivalTo}"
+                   class="form-control">
+
+        </div>
+
+
+        <div class="col-md-2">
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Search
+            </button>
+
+        </div>
+        <div class="alert alert-success"
+             th:if="${message}"
+             th:text="${message}">
+        </div>
+
+        <div class="alert alert-danger"
+             th:if="${error}"
+             th:text="${error}">
+        </div>
+        <div class="col-md-3">
+
+            <select name="sort"
+                    class="form-select">
+
+                <option value="title,asc"
+                        th:selected="${param.sort != null and param.sort[0] == 'title,asc'}">
+                    Name A-Z
+                </option>
+
+                <option value="price,asc"
+                        th:selected="${param.sort != null and param.sort[0] == 'price,asc'}">
+                    Price low-high
+                </option>
+
+                <option value="price,desc"
+                        th:selected="${param.sort != null and param.sort[0] == 'price,desc'}">
+                    Price high-low
+                </option>
+
+            </select>
+
+        </div>
+
+    </form>
+
     <table class="table table-striped">
         <thead>
         <th>Title</th>
@@ -22,26 +150,68 @@
         <th>Hotel</th>
         <th>Date from</th>
         <th>Date to</th>
+        <th
+                sec:authorize="hasRole('USER')">Action</th>
         </thead>
 
         <tbody>
-        <tr th:each="v : ${vouchers}">
+        <tr th:each="v : ${page.content}">
             <td th:text="${v.title}"/>
             <td th:text="${v.price}"/>
             <td th:text="${v.hotelType}"/>
             <td th:text="${v.arrivalDate}"/>
             <td th:text="${v.evictionDate}"/>
+            <td sec:authorize="hasRole('USER')">
+
+                <form th:action="@{/vouchers/{id}/buy(id=${v.id})}"
+                      th:if="${v.userId == null}"
+                      method="post">
+
+                    <button class="btn btn-sm btn-success">
+                        Buy
+                    </button>
+
+                </form>
+            </td>
+
         </tr>
 
         </tbody>
 
     </table>
 
-</div>
+<nav th:if="${page.totalPages > 1}">
+
+    <ul class="pagination">
+
+        <li class="page-item"
+            th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+            th:classappend="${i == page.page} ? 'active'">
+
+            <a class="page-link"
+               th:text="${i + 1}"
+               th:href="@{/vouchers(page=${i},
+                                    size=${page.size},
+                                    tourType=${filter.tourType},
+                                    hotelType=${filter.hotelType},
+                                    transferType=${filter.transferType},
+                                    minPrice=${filter.minPrice},
+                                    maxPrice=${filter.maxPrice},
+                                    arrivalFrom=${filter.arrivalFrom},
+                                    arrivalTo=${filter.arrivalTo},
+                                    sort=${param.sort})}">
+            </a>
+        </li>
+
+    </ul>
+
+</nav>
+
+
 
 <th:block th:replace="~{fragments/layout :: scripts}">
 </th:block>
-<!-- у самому кінці встав скрипти -->
+
 
 </body>
 </html>
