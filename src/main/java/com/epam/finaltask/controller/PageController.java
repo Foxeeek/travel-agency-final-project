@@ -1,10 +1,7 @@
 package com.epam.finaltask.controller;
 
 import com.epam.finaltask.auth.CustomUserDetails;
-import com.epam.finaltask.dto.LoginRequestDTO;
-import com.epam.finaltask.dto.VoucherDTO;
-import com.epam.finaltask.dto.VoucherFilterDTO;
-import com.epam.finaltask.dto.VoucherRequestDTO;
+import com.epam.finaltask.dto.*;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.model.HotelType;
@@ -18,6 +15,7 @@ import com.epam.finaltask.token.JwtAuthenticationFilter;
 import com.epam.finaltask.token.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
@@ -32,6 +30,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -40,6 +39,9 @@ import java.util.UUID;
 
 @Controller
 public class PageController {
+
+
+
     VoucherService voucherService;
     UserService userService;
     JwtService jwtService;
@@ -56,6 +58,10 @@ public class PageController {
         this.voucherOrderService = voucherOrderService;
     }
 
+    @InitBinder
+    public void initBinder(WebDataBinder binder){
+        binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
+    }
 
     @GetMapping("/vouchers")
     public String vouchers(@ModelAttribute("filter") VoucherFilterDTO filter,
@@ -135,6 +141,7 @@ public class PageController {
         UUID id = principal.getUser().getId();
         model.addAttribute("profile", userService.getProfile(id));
         model.addAttribute("vouchers", voucherService.findAllByUserId(id.toString()));
+        model.addAttribute("profileForm", new UserUpdateRequestDTO());
         return "profile";
     }
 
@@ -284,4 +291,24 @@ public class PageController {
         }
         return "redirect:/manage/users";
     }
+
+    @PostMapping("/profile")
+    public String updateProfile(@Valid @ModelAttribute("profileForm") UserUpdateRequestDTO form,
+                                BindingResult result, @AuthenticationPrincipal CustomUserDetails principal,
+                                RedirectAttributes redirect, Model model){
+
+        if (result.hasErrors()){
+            model.addAttribute("profile", userService.getProfile(principal.getUser().getId()));
+            model.addAttribute("vouchers", voucherService.findAllByUserId(principal.getUser().getId().toString()));
+            return "profile";
+        }
+
+        userService.updateProfile(principal.getUser().getId(),form);
+        redirect.addFlashAttribute("message", "Profile updated");
+        return "redirect:/profile";
+
+
+    }
+
+
 }
