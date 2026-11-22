@@ -3,9 +3,11 @@ package com.epam.finaltask.controller;
 import com.epam.finaltask.auth.CustomUserDetails;
 import com.epam.finaltask.dto.LoginRequestDTO;
 import com.epam.finaltask.dto.UserResponseDTO;
+import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.dto.VoucherFilterDTO;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
+import com.epam.finaltask.model.VoucherStatus;
 import com.epam.finaltask.service.UserService;
 import com.epam.finaltask.service.VoucherOrderService;
 import com.epam.finaltask.service.VoucherService;
@@ -25,10 +27,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
@@ -133,5 +132,43 @@ public class PageController {
         model.addAttribute("profile", userService.getProfile(id));
         model.addAttribute("vouchers", voucherService.findAllByUserId(id.toString()));
         return "profile";
+    }
+
+
+    @GetMapping("/manage")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+    public String manage(@PageableDefault(size = 20, sort = "title") Pageable pageable,
+                         Model model) {
+
+        model.addAttribute("page", voucherService.search(new VoucherFilterDTO(), pageable));
+        return "manage";
+    }
+
+    @PostMapping("/manage/vouchers/{id}/hot")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+    public String toggleHot(@PathVariable String id,
+                                 @RequestParam boolean hot,
+                                 RedirectAttributes redirect) {
+
+        VoucherDTO dto = new VoucherDTO();
+        dto.setIsHot(hot);
+        voucherService.changeHotStatus(id, dto);
+
+        redirect.addFlashAttribute("message", "Updated");
+        return "redirect:/manage";
+    }
+
+    @PostMapping("/manage/orders/{id}/status")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+    public String changeStatus(@PathVariable UUID id,
+                               @RequestParam VoucherStatus status,           // нове значення статусу з форми
+                               RedirectAttributes redirect) {
+        try {
+            voucherOrderService.changeStatus(id, status);
+            redirect.addFlashAttribute("message", "Status changed");
+        } catch (ConflictException | NotFoundException e) {
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/manage";
     }
 }
