@@ -29,17 +29,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         return http.csrf(csrf -> csrf.disable())
+                .logout(logout -> logout.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**")
+                        .requestMatchers("/api/auth/**", "/login")
                         .permitAll()
                         .anyRequest()
                         .authenticated()
+
                 )
                 .exceptionHandling(e ->
                         e.authenticationEntryPoint(
-                                        (req, res, ex) ->
-                                                writeError(res, HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Authentication required"))
+                                        (req, res, ex) -> {
+                                            if (req.getRequestURI().startsWith("/api/")) {
+                                                writeError(res, HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Authentication required");
+                                            } else {
+                                                res.sendRedirect("/login");
+                                            }
+                                        })
+
                                 .accessDeniedHandler(
+
                                         (req, res, ex) ->
                                                 writeError(res, HttpStatus.FORBIDDEN, "FORBIDDEN", "Access denied"))
                 )

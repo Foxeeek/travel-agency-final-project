@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('vouchers')}">
+</head>
+<!-- Читається так: "замість цього <head> встав шматок head з файлу layout
+     і передай йому заголовок 'Vouchers'" -->
+
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}">
+</nav>
+<!-- замість цього <nav> встав меню -->
+
+<div class="container mt-4">
+    <h1>Vouchers</h1>
+    <table class="table table-striped">
+        <thead>
+        <th>Title</th>
+        <th>Price</th>
+        <th>Hotel</th>
+        <th>Date from</th>
+        <th>Date to</th>
+        </thead>
+
+        <tbody>
+        <tr th:each="v : ${vouchers}">
+            <td th:text="${v.title}"/>
+            <td th:text="${v.price}"/>
+            <td th:text="${v.hotelType}"/>
+            <td th:text="${v.arrivalDate}"/>
+            <td th:text="${v.evictionDate}"/>
+        </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}">
+</th:block>
+<!-- у самому кінці встав скрипти -->
+
+</body>
+</html>
