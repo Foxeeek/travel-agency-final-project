@@ -11,36 +11,36 @@ public class VoucherDTO {
 
     private String id;
 
-    @NotBlank(message = "must not be blank")
+    @NotBlank(message = "{validation.notBlank}")
     private String title;
-    @NotBlank(message = "must not be blank")
+    @NotBlank(message = "{validation.notBlank}")
     private String description;
 
-    @Positive(message = "must be greater than 0")
-    @NotNull(message = "is required")
+    @Positive(message = "{validation.positive}")
+    @NotNull(message = "{validation.required}")
     private Double price;
 
-    @NotBlank(message = "is required")
+    @NotBlank(message = "{validation.required}")
     private String tourType;
 
-    @NotBlank(message = "is required")
+    @NotBlank(message = "{validation.required}")
     private String transferType;
 
-    @NotBlank(message = "is required")
+    @NotBlank(message = "{validation.required}")
     private String hotelType;
 
-    @NotBlank(message = "is required")
+    @NotBlank(message = "{validation.required}")
     private String status;
 
-    @NotNull(message = "is required")
+    @NotNull(message = "{validation.required}")
     private LocalDate arrivalDate;
 
-    @NotNull(message = "is required")
+    @NotNull(message = "{validation.required}")
     private LocalDate evictionDate;
 
     private UUID userId;
 
-    @NotNull(message = "is required")
+    @NotNull(message = "{validation.required}")
     private Boolean isHot;
 
     public String getId() {

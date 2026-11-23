@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragments/layout :: head('Users')}">
+<head th:replace="~{fragments/layout :: head(#{users.title})}">
 </head>
 
 <body>
@@ -10,7 +10,7 @@
 </nav>
 
 <div class="container mt-4">
-    <h1>Users</h1>
+    <h1 th:text="#{users.title}"></h1>
 
     <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
     <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
@@ -20,12 +20,12 @@
 
             <thead>
             <tr>
-                <th>Login</th>
-                <th>Role</th>
-                <th>Phone</th>
-                <th>Balance</th>
-                <th>Status</th>
-                <th>Action</th>
+                <th th:text="#{users.col.login}"></th>
+                <th th:text="#{users.col.role}"></th>
+                <th th:text="#{users.col.phone}"></th>
+                <th th:text="#{users.col.balance}"></th>
+                <th th:text="#{users.col.status}"></th>
+                <th th:text="#{users.col.action}"></th>
             </tr>
             </thead>
 
@@ -36,16 +36,23 @@
                 <td th:text="${u.username}"></td>
 
                 <td>
+                    <span th:if="${u.role == 'ADMIN'}"
+                          th:text="#{|enum.Role.${u.role}|}"
+                    >
+
+                    </span>
                 <form th:action="@{/manage/users/{id}/role(id=${u.id})}"
                       class="d-flex align-items-center gap-2 "
                       th:if="${u.role != 'ADMIN'}"
                       method="post">
+
                     <select name="role" class="form-select form-select-sm">
                         <option th:each="r : ${T(com.epam.finaltask.model.Role).values()}"
-                                th:value="${r}" th:text="${r}"
+                                th:value="${r}" th:text="#{|enum.Role.${r}|}"
                                 th:selected="${r.name() == u.role}"></option>
                     </select>
-                    <button class="btn btn-sm btn-outline-primary">Save</button>
+
+                    <button class="btn btn-sm btn-outline-primary" th:text="#{users.save}"></button>
                 </form>
                 </td>
 
@@ -54,7 +61,7 @@
 
                 <td>
             <span class="badge"
-                  th:text="${u.active} ? 'Active' : 'Blocked'"
+                  th:text="${u.active} ? #{users.active} : #{users.blocked}"
                   th:classappend="${u.active} ? 'bg-success' : 'bg-danger'">
             </span>
                 </td>
@@ -67,7 +74,7 @@
 
                         <button class="btn btn-sm"
                                 th:classappend="${u.active} ? 'btn-outline-danger' : 'btn-outline-success'"
-                                th:text="${u.active} ? 'Block' : 'Unblock'">
+                                th:text="${u.active} ? #{users.block} : #{users.unblock}">
                         </button>
 
                     </form>

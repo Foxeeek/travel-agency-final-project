@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 
-<html <html xmlns:th="http://www.thymeleaf.org"
-            xmlns:sec="http://www.thymeleaf.org/extras/spring-security">>
-<head th:replace="~{fragments/layout :: head('vouchers')}">
+<html xmlns:th="http://www.thymeleaf.org"
+            xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(#{vouchers.title})}">
 
 </head>
 
@@ -13,7 +13,7 @@
 </nav>
 
 <div class="container mt-4">
-    <h1>Vouchers</h1>
+    <h1 th:text="#{vouchers.title}"></h1>
     <form th:action="@{/vouchers}"
           th:object="${filter}"
           method="get"
@@ -24,11 +24,11 @@
             <select th:field="*{hotelType}"
                     class="form-select">
 
-                <option value="">Any hotel</option>
+                <option value="" th:text="#{vouchers.hotel.any}"></option>
 
                 <option th:each="h : ${T(com.epam.finaltask.model.HotelType).values()}"
                         th:value="${h}"
-                        th:text="${h}">
+                        th:text="#{|enum.HotelType.${h}|}">
                 </option>
 
             </select>
@@ -40,11 +40,11 @@
             <select th:field="*{tourType}"
                     class="form-select">
 
-                <option value="">Any tour</option>
+                <option value="" th:text="#{vouchers.tour.any}"></option>
 
                 <option th:each="h : ${T(com.epam.finaltask.model.TourType).values()}"
                         th:value="${h}"
-                        th:text="${h}">
+                        th:text="#{|enum.TourType.${h}|}">
                 </option>
 
             </select>
@@ -56,11 +56,11 @@
             <select th:field="*{transferType}"
                     class="form-select">
 
-                <option value="">Any transfer</option>
+                <option value="" th:text="#{vouchers.transfer.any}"></option>
 
                 <option th:each="h : ${T(com.epam.finaltask.model.TransferType).values()}"
                         th:value="${h}"
-                        th:text="${h}">
+                        th:text="#{|enum.TransferType.${h}|}">
                 </option>
 
             </select>
@@ -75,7 +75,7 @@
             <input type="number"
                    th:field="*{minPrice}"
                    class="form-control"
-                   placeholder="Min price">
+                   th:placeholder="#{vouchers.price.min}">
 
         </div>
 
@@ -83,7 +83,7 @@
             <input type="number"
                    th:field="*{maxPrice}"
                    class="form-control"
-                   placeholder="Max price">
+                   th:placeholder="#{vouchers.price.max}">
 
         </div>
         <div class="col-md-2">
@@ -103,7 +103,8 @@
         <div class="col-md-2">
 
             <button type="submit"
-                    class="btn btn-primary">
+                    class="btn btn-primary"
+                    th:text="#{vouchers.search}">
                 Search
             </button>
 
@@ -123,17 +124,20 @@
                     class="form-select">
 
                 <option value="title,asc"
-                        th:selected="${param.sort != null and param.sort[0] == 'title,asc'}">
+                        th:selected="${param.sort != null and param.sort[0] == 'title,asc'}"
+                        th:text="#{vouchers.sort.title}">
                     Name A-Z
                 </option>
 
                 <option value="price,asc"
-                        th:selected="${param.sort != null and param.sort[0] == 'price,asc'}">
+                        th:selected="${param.sort != null and param.sort[0] == 'price,asc'}"
+                        th:text="#{vouchers.sort.priceAsc}">
                     Price low-high
                 </option>
 
                 <option value="price,desc"
-                        th:selected="${param.sort != null and param.sort[0] == 'price,desc'}">
+                        th:selected="${param.sort != null and param.sort[0] == 'price,desc'}"
+                        th:text="#{vouchers.sort.priceDesc}">
                     Price high-low
                 </option>
 
@@ -145,19 +149,19 @@
 
     <table class="table table-striped">
         <thead>
-        <th>Title</th>
-        <th>Price</th>
-        <th>Hotel</th>
-        <th>Date from</th>
-        <th>Date to</th>
-        <th sec:authorize="hasRole('USER')">Action</th>
+        <th th:text="#{vouchers.col.title}"></th>
+        <th th:text="#{vouchers.col.price}"></th>
+        <th th:text="#{vouchers.col.hotel}"></th>
+        <th th:text="#{vouchers.col.from}"></th>
+        <th th:text="#{vouchers.col.to}"></th>
+        <th sec:authorize="hasRole('USER')" th:text="#{vouchers.col.action}"></th>
         </thead>
 
         <tbody>
         <tr th:each="v : ${page.content}">
             <td th:text="${v.title}"/>
             <td th:text="${v.price}"/>
-            <td th:text="${v.hotelType}"/>
+            <td th:text="#{|enum.HotelType.${v.hotelType}|}"></td>
             <td th:text="${v.arrivalDate}"/>
             <td th:text="${v.evictionDate}"/>
             <td sec:authorize="hasRole('USER')">
@@ -166,8 +170,8 @@
                       th:if="${v.userId == null}"
                       method="post">
 
-                    <button class="btn btn-sm btn-success">
-                        Buy
+                    <button class="btn btn-sm btn-success" th:text="#{vouchers.buy}">
+
                     </button>
 
                 </form>
@@ -178,7 +182,7 @@
         </tbody>
 
     </table>
-
+</div>
 <nav th:if="${page.totalPages > 1}">
 
     <ul class="pagination">

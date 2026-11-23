@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 public class UserStatusRequestDTO {
 
-    @NotNull(message = "is required")
+    @NotNull(message = "{validation.required}")
     private Boolean active;
 
     public Boolean getActive() {

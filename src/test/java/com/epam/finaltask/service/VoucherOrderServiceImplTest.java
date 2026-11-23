@@ -118,7 +118,11 @@ public class VoucherOrderServiceImplTest {
             when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
             when(userRepository.findById(userid)).thenReturn(Optional.of(user));
 
-            assertThrows(ConflictException.class, () -> voucherOrderService.order(voucherId, userid));
+            ConflictException ex = Assertions.assertThrows(ConflictException.class, () -> voucherOrderService.order(voucherId, userid));
+
+            Assertions.assertEquals("err.voucher.alreadyOrdered", ex.getKey());
+
+            Assertions.assertArrayEquals(new Object[]{voucherId}, ex.getArgs());
 
             verify(voucherRepository, never()).save(any());
             verify(userRepository, never()).save(any());
@@ -140,7 +144,11 @@ public class VoucherOrderServiceImplTest {
             when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
             when(userRepository.findById(userid)).thenReturn(Optional.of(user));
 
-            assertThrows(ConflictException.class, () -> voucherOrderService.order(voucherId, userid));
+            ConflictException ex = Assertions.assertThrows(ConflictException.class, () -> voucherOrderService.order(voucherId, userid));
+
+            Assertions.assertEquals("err.voucher.onlyRegisteredOrder", ex.getKey());
+
+            Assertions.assertEquals(0, ex.getArgs().length);
 
             verify(voucherRepository, never()).save(any());
             verify(userRepository, never()).save(any());
@@ -161,7 +169,11 @@ public class VoucherOrderServiceImplTest {
             when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
             when(userRepository.findById(userid)).thenReturn(Optional.of(user));
 
-            assertThrows(ConflictException.class, () -> voucherOrderService.order(voucherId, userid));
+            ConflictException ex = Assertions.assertThrows(ConflictException.class, () -> voucherOrderService.order(voucherId, userid));
+
+            Assertions.assertEquals("err.balance.insufficient", ex.getKey());
+
+            Assertions.assertEquals(0, ex.getArgs().length);
 
             verify(voucherRepository, never()).save(any());
             verify(userRepository, never()).save(any());
@@ -175,7 +187,11 @@ public class VoucherOrderServiceImplTest {
 
             when(voucherRepository.findById(voucherId)).thenReturn(Optional.empty());
 
-            assertThrows(NotFoundException.class, () -> voucherOrderService.order(voucherId, userid));
+            NotFoundException ex = Assertions.assertThrows(NotFoundException.class, () -> voucherOrderService.order(voucherId, userid));
+
+            Assertions.assertEquals("err.voucher.notFound", ex.getKey());
+
+            Assertions.assertArrayEquals(new Object[]{voucherId}, ex.getArgs());
 
             verify(voucherRepository, never()).save(any());
         }
@@ -191,7 +207,11 @@ public class VoucherOrderServiceImplTest {
             when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
             when(userRepository.findById(userid)).thenReturn(Optional.empty());
 
-            assertThrows(NotFoundException.class, () -> voucherOrderService.order(voucherId, userid));
+            NotFoundException ex = Assertions.assertThrows(NotFoundException.class, () -> voucherOrderService.order(voucherId, userid));
+
+            Assertions.assertEquals("err.user.notFound", ex.getKey());
+
+            Assertions.assertArrayEquals(new Object[]{userid}, ex.getArgs());
 
             verify(voucherRepository, never()).save(any());
         }
@@ -272,7 +292,11 @@ public class VoucherOrderServiceImplTest {
 
             when(voucherRepository.findById(id)).thenReturn(Optional.empty());
 
-            assertThrows(NotFoundException.class, () -> voucherOrderService.changeStatus(id, status));
+            NotFoundException ex = Assertions.assertThrows(NotFoundException.class, () -> voucherOrderService.changeStatus(id, status));
+
+            Assertions.assertEquals("err.voucher.notFound", ex.getKey());
+
+            Assertions.assertArrayEquals(new Object[]{id}, ex.getArgs());
 
             verify(voucherRepository, never()).save(any());
         }
@@ -289,7 +313,11 @@ public class VoucherOrderServiceImplTest {
             when(voucherRepository.findById(id))
                     .thenReturn(Optional.of(voucher));
 
-            assertThrows(ConflictException.class, () -> voucherOrderService.changeStatus(id, status));
+            ConflictException ex = Assertions.assertThrows(ConflictException.class, () -> voucherOrderService.changeStatus(id, status));
+
+            Assertions.assertEquals("err.voucher.noUser", ex.getKey());
+
+            Assertions.assertArrayEquals(new Object[]{id}, ex.getArgs());
 
             verify(voucherRepository, never()).save(any());
         }
@@ -309,7 +337,11 @@ public class VoucherOrderServiceImplTest {
 
             when(voucherRepository.findById(id)).thenReturn(Optional.of(voucher));
 
-            assertThrows(ConflictException.class, () -> voucherOrderService.changeStatus(id, status));
+            ConflictException ex = Assertions.assertThrows(ConflictException.class, () -> voucherOrderService.changeStatus(id, status));
+
+            Assertions.assertEquals("err.status.onlyRegistered", ex.getKey());
+
+            Assertions.assertEquals(0, ex.getArgs().length);
 
             verify(voucherRepository, never()).save(any());
         }
@@ -329,7 +361,13 @@ public class VoucherOrderServiceImplTest {
             when(voucherRepository.findById(id)).thenReturn(Optional.of(voucher));
 
 
-            assertThrows(ConflictException.class, () -> voucherOrderService.changeStatus(id, status));
+            ConflictException ex = Assertions.assertThrows(ConflictException.class, () -> voucherOrderService.changeStatus(id, status));
+
+
+            Assertions.assertEquals("err.status.onlyPaidCanceled", ex.getKey());
+
+
+            Assertions.assertEquals(0, ex.getArgs().length);
 
             verify(voucherRepository, never()).save(any());
         }

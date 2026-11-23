@@ -5,7 +5,7 @@
 
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
-    <title th:text="${title}">Shop</title>
+    <title th:text="${title}"></title>
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 </head>
@@ -13,6 +13,15 @@
 <nav th:fragment="navbar"
      class="navbar navbar-expand navbar-dark bg-dark px-3">
 
+
+    <a class="navbar-brand"
+       th:href="@{''(lang='uk')}">
+        UK
+    </a>
+    <a class="navbar-brand"
+       th:href="@{''(lang='en')}">
+        EN
+    </a>
     <a class="navbar-brand"
        th:href="@{/vouchers}">
         Travel Agency
@@ -22,42 +31,41 @@
 
         <li class="nav-item">
             <a class="nav-link"
+               th:text="#{nav.vouchers}"
                th:href="@{/vouchers}">
-                Vouchers
             </a>
         </li>
 
         <li class="nav-item">
             <a class="nav-link"
+               th:text="#{nav.account}"
                th:href="@{/profile}">
-                My account
             </a>
         </li>
 
         <li class="nav-item"
             sec:authorize="hasAnyRole('MANAGER','ADMIN')">
             <a class="nav-link"
+               th:text="#{nav.manage}"
                th:href="@{/manage}">
-                Manage
             </a>
         </li>
 
         <li class="nav-item"
             sec:authorize="hasRole('ADMIN')">
-            <a class="nav-link" th:href="@{/manage/users}">Users</a>
+            <a class="nav-link" th:href="@{/manage/users}" th:text="#{nav.users}"></a>
         </li>
 
     </ul>
 
     <span class="navbar-text text-white me-3"
           sec:authentication="name">
-        username
     </span>
 
     <form th:action="@{/logout}"
           method="post">
-        <button class="btn btn-outline-light btn-sm">
-            Log out
+        <button class="btn btn-outline-light btn-sm"
+                th:text="#{nav.logout}">
         </button>
     </form>
 

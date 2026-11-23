@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragments/layout :: head('Error')}">
+<head th:replace="~{fragments/layout :: head(#{error.title})}">
 </head>
 
 <body>
 
 <div class="container mt-5 text-center">
-
     <h1 class="display-4"
-        th:text="${status} ?: 'Error'">
-        500
+        th:text="${status} ?: #{error.title}">
     </h1>
     <p class="lead"
-       th:text="${message} ?: 'Something went wrong'">
-        Something went wrong
+       th:text="${message} ?: 'error.default'">
+
     </p>
 
     <a class="btn btn-primary"
-       th:href="@{/vouchers}">
-        Back to vouchers
+       th:href="@{/vouchers}"
+       th:text="#{error.back}">
     </a>
 
 </div>

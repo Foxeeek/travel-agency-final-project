@@ -40,7 +40,7 @@ public class VoucherServiceImpl implements VoucherService {
         return voucherRepository.findById(id)
                 .orElseThrow(() -> {
                             log.warn("Voucher with id {} not found", id);
-                            return new NotFoundException("Voucher " + id + " not found");
+                            return new NotFoundException("Voucher " + id + " not found","err.voucher.notFound",id);
                         }
                 );
     }
@@ -90,7 +90,7 @@ public class VoucherServiceImpl implements VoucherService {
         Voucher voucher = voucherById(UUID.fromString(voucherId));
         if (voucher.getUser() != null) {
             log.warn("Voucher {} is ordered and cannot be deleted", voucher.getId());
-            throw new ConflictException("Voucher is ordered and cannot be deleted");
+            throw new ConflictException("Voucher is ordered and cannot be deleted", "err.voucher.orderedCannotDelete");
         }
         voucherRepository.delete(voucher);
         log.info("Voucher deleted successfully with ID: {}", voucher.getId());

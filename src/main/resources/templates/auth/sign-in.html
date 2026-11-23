@@ -1,32 +1,41 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 
-<head th:replace="~{fragments/layout :: head('Login')}">
+<head th:replace="~{fragments/layout :: head(#{login.title})}">
 </head>
 
 <body>
 
 <div class="container mt-5" style="max-width: 420px;">
 
-    <h2 class="mb-4">Login</h2>
+    <h2 class="mb-4" th:text="#{login.title}"></h2>
+
+    <a class="navbar-brand"
+       th:href="@{''(lang='uk')}">
+        UK
+    </a>
+    <a class="navbar-brand"
+       th:href="@{''(lang='en')}">
+        EN
+    </a>
 
     <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
 
     <form th:action="@{/login}" th:object="${loginRequest}" method="post">
 
         <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
+            <label for="username" class="form-label" th:text="#{login.username}"></label>
             <input type="text" class="form-control" id="username" th:field="*{username}"
-                   placeholder="Enter username" required>
+                   th:placeholder="#{login.username.placeholder}" required>
         </div>
 
         <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
+            <label for="password" class="form-label" th:text="#{login.password}">Password</label>
             <input type="password" class="form-control" id="password" th:field="*{password}"
-                   placeholder="Password" required>
+                   th:placeholder="#{login.password.placeholder}" required>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Log in</button>
+        <button type="submit" class="btn btn-primary w-100" th:text="#{login.submit}"></button>
 
     </form>
 

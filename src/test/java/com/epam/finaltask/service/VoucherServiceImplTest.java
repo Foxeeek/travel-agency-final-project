@@ -215,7 +215,11 @@ public class VoucherServiceImplTest {
 
             when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
 
-            assertThrows(ConflictException.class, () -> voucherService.delete(voucherId.toString()));
+            ConflictException ex = Assertions.assertThrows(ConflictException.class, () -> voucherService.delete(voucherId.toString()));
+
+            Assertions.assertEquals("err.voucher.orderedCannotDelete", ex.getKey());
+
+            Assertions.assertEquals(0, ex.getArgs().length);
 
             verify(voucherRepository, never()).delete(any(Voucher.class));
         }
@@ -246,7 +250,11 @@ public class VoucherServiceImplTest {
 
             when(voucherRepository.findById(id)).thenReturn(Optional.empty());
 
-            assertThrows(NotFoundException.class, () -> voucherService.findById(id.toString()));
+            NotFoundException ex = Assertions.assertThrows(NotFoundException.class, () -> voucherService.findById(id.toString()));
+
+            Assertions.assertEquals("err.voucher.notFound", ex.getKey());
+
+            Assertions.assertArrayEquals(new Object[]{id}, ex.getArgs());
 
             verifyNoInteractions(voucherMapper);
         }

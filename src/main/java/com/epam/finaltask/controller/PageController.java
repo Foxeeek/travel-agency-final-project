@@ -3,6 +3,7 @@ package com.epam.finaltask.controller;
 import com.epam.finaltask.auth.CustomUserDetails;
 import com.epam.finaltask.dto.*;
 import com.epam.finaltask.exception.ConflictException;
+import com.epam.finaltask.exception.LocalizedException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.model.*;
 import com.epam.finaltask.service.UserService;
@@ -13,6 +14,8 @@ import com.epam.finaltask.token.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
@@ -36,23 +39,23 @@ import java.util.UUID;
 
 @Controller
 public class PageController {
-
-
-
     VoucherService voucherService;
     UserService userService;
     JwtService jwtService;
     AuthenticationManager authenticationManager;
     VoucherOrderService voucherOrderService;
+    MessageSource messageSource;
 
     public PageController(AuthenticationManager authenticationManager, JwtService jwtService,
                           UserService userService, VoucherService voucherService,
-                          VoucherOrderService voucherOrderService) {
+                          VoucherOrderService voucherOrderService,
+                          MessageSource messageSource) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userService = userService;
         this.voucherService = voucherService;
         this.voucherOrderService = voucherOrderService;
+        this.messageSource = messageSource;
     }
 
     @InitBinder
@@ -97,7 +100,7 @@ public class PageController {
             return "redirect:/vouchers";
 
         } catch (AuthenticationException e) {
-            model.addAttribute("error", "Invalid username or password");
+            model.addAttribute("error", msg("msg.login.invalid"));
             return "auth/sign-in";
         }
     }
@@ -123,10 +126,10 @@ public class PageController {
                         RedirectAttributes redirect) {
         try {
             voucherOrderService.order(id, principal.getUser().getId());
-            redirect.addFlashAttribute("message", "Ordered!");
+            redirect.addFlashAttribute("message", msg("msg.ordered"));
 
         } catch (ConflictException | NotFoundException e) {
-            redirect.addFlashAttribute("error", e.getMessage());
+            redirect.addFlashAttribute("error",  exceptionMsg(e));
         }
 
         return "redirect:/vouchers";
@@ -162,7 +165,7 @@ public class PageController {
         dto.setIsHot(hot);
         voucherService.changeHotStatus(id, dto);
 
-        redirect.addFlashAttribute("message", "Updated");
+        redirect.addFlashAttribute("message", msg("msg.updated"));
         return "redirect:/manage";
     }
 
@@ -173,9 +176,9 @@ public class PageController {
                                RedirectAttributes redirect) {
         try {
             voucherOrderService.changeStatus(id, status);
-            redirect.addFlashAttribute("message", "Status changed");
+            redirect.addFlashAttribute("message", msg("msg.status.changed"));
         } catch (ConflictException | NotFoundException e) {
-            redirect.addFlashAttribute("error", e.getMessage());
+            redirect.addFlashAttribute("error",  exceptionMsg(e));
         }
         return "redirect:/manage";
     }
@@ -186,9 +189,9 @@ public class PageController {
                                 RedirectAttributes redirect) {
         try {
             voucherService.delete(id);
-            redirect.addFlashAttribute("message", "Deleted");
+            redirect.addFlashAttribute("message", msg("msg.deleted"));
         } catch (NotFoundException | ConflictException e) {
-            redirect.addFlashAttribute("error", e.getMessage());
+            redirect.addFlashAttribute("error",  exceptionMsg(e));
         }
         return "redirect:/manage";
     }
@@ -212,7 +215,7 @@ public class PageController {
         }
 
         voucherService.create(form);
-        redirect.addFlashAttribute("message", "Created");
+        redirect.addFlashAttribute("message", msg("msg.created"));
         return "redirect:/manage";
     }
 
@@ -253,9 +256,9 @@ public class PageController {
 
         try {
             voucherService.update(id.toString(), form);
-            redirect.addFlashAttribute("message", "Updated");
+            redirect.addFlashAttribute("message", msg("msg.updated"));
         } catch (NotFoundException e) {
-            redirect.addFlashAttribute("error", e.getMessage());
+            redirect.addFlashAttribute("error",  exceptionMsg(e));
         }
         return "redirect:/manage";
     }
@@ -276,15 +279,15 @@ public class PageController {
                                     RedirectAttributes redirect) {
 
         if (id.equals(principal.getUser().getId())) {
-            redirect.addFlashAttribute("error", "You cannot block yourself");
+            redirect.addFlashAttribute("error", msg("msg.user.cannotBlockSelf"));
             return "redirect:/manage/users";
         }
 
         try {
             userService.changeAccountStatus(id, active);
-            redirect.addFlashAttribute("message", active ? "Unblocked" : "Blocked");
+            redirect.addFlashAttribute("message", active ? msg("msg.user.unblocked") : msg("msg.user.blocked"));
         } catch (NotFoundException e) {
-            redirect.addFlashAttribute("error", e.getMessage());
+            redirect.addFlashAttribute("error",  exceptionMsg(e));
         }
 
         return "redirect:/manage/users";
@@ -299,15 +302,15 @@ public class PageController {
 
 
         if (id.equals(principal.getUser().getId())) {
-            redirect.addFlashAttribute("error", "You cannot change your own role");
+            redirect.addFlashAttribute("error", msg("msg.role.cannotChangeSelf"));
             return "redirect:/manage/users";
         }
 
         try {
             userService.changeAccountRole(id, role);
-            redirect.addFlashAttribute("message", "Role successful changed");
+            redirect.addFlashAttribute("message", msg("msg.role.changed"));
         } catch (NotFoundException e) {
-            redirect.addFlashAttribute("error", e.getMessage());
+            redirect.addFlashAttribute("error", exceptionMsg(e));
         }
         return "redirect:/manage/users";
     }
@@ -323,10 +326,18 @@ public class PageController {
         }
 
         userService.updateProfile(principal.getUser().getId(),form);
-        redirect.addFlashAttribute("message", "Profile updated");
+        redirect.addFlashAttribute("message", msg("msg.profile.updated"));
         return "redirect:/profile";
+    }
 
-
+    private String msg(String key){
+        return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
+    }
+    private String exceptionMsg(LocalizedException e){
+        if (e.getKey() == null){
+            return e.getMessage();
+        }
+        return messageSource.getMessage(e.getKey(), e.getArgs(), LocaleContextHolder.getLocale());
     }
 
 

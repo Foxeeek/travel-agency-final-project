@@ -13,26 +13,26 @@ import java.time.LocalDate;
 
 @ValidDateRange
 public class VoucherRequestDTO {
-    @NotBlank(message = "must not be blank")
+    @NotBlank(message = "{validation.notBlank}")
     private String title;
-    @NotBlank(message = "must not be blank")
+    @NotBlank(message = "{validation.notBlank}")
     private String description;
-    @NotNull(message = "is required")
-    @Positive(message = "must be greater than 0")
+    @NotNull(message = "{validation.required}")
+    @Positive(message = "{validation.positive}")
     private Double price;
-    @NotNull(message = "is required")
+    @NotNull(message = "{validation.required}")
     private TourType tourType;
-    @NotNull(message = "is required")
+    @NotNull(message = "{validation.required}")
     private TransferType transferType;
-    @NotNull(message = "is required")
+    @NotNull(message = "{validation.required}")
     private HotelType hotelType;
-    @NotNull(message = "is required")
+    @NotNull(message = "{validation.required}")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate arrivalDate;
-    @NotNull(message = "is required")
+    @NotNull(message = "{validation.required}")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate evictionDate;
-    @NotNull(message = "is required")
+    @NotNull(message = "{validation.required}")
     private Boolean isHot;
 
     public LocalDate getArrivalDate() {

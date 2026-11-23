@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(uuid)
                 .orElseThrow(() -> {
                             log.warn("User with id {} not found", uuid);
-                            return new NotFoundException("User " + uuid + " not found");
+                            return new NotFoundException("User " + uuid + " not found","err.user.notFound",uuid);
                         }
                 );
     }
@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findUserByUsername(username)
                 .orElseThrow(() -> {
                             log.warn("User {} not found", username);
-                            return new NotFoundException("User " + username + " not found");
+                            return new NotFoundException("User " + username + " not found","err.user.notFound",username);
                         }
                 );
     }
@@ -58,10 +58,8 @@ public class UserServiceImpl implements UserService {
             return userMapper.toUserDTO(user);
         } else {
             log.warn("Registration rejected: user {} already exists", userDTO.getUsername());
-            throw new ConflictException("User " + userDTO.getUsername() + " already exists");
+            throw new ConflictException("User " + userDTO.getUsername() + " already exists","err.user.exists",userDTO.getUsername());
         }
-
-
     }
 
     @Override

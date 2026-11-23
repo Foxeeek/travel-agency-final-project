@@ -162,7 +162,11 @@ public class UserServiceImplTest {
 
             when(userRepository.existsByUsername(usrName)).thenReturn(true);
 
-            assertThrows(ConflictException.class, () -> userService.register(userDTO));
+            ConflictException ex = Assertions.assertThrows(ConflictException.class, () -> userService.register(userDTO));
+
+            Assertions.assertEquals("err.user.exists", ex.getKey());
+
+            Assertions.assertArrayEquals(new Object[]{usrName}, ex.getArgs());
 
             verify(userRepository, never()).save(any());
         }
@@ -177,7 +181,11 @@ public class UserServiceImplTest {
 
             when(userRepository.findUserByUsername(username)).thenReturn(Optional.empty());
 
-            Assertions.assertThrows(NotFoundException.class, () -> userService.getUserByUsername(username));
+            NotFoundException ex = Assertions.assertThrows(NotFoundException.class, () -> userService.getUserByUsername(username));
+
+            Assertions.assertEquals("err.user.notFound", ex.getKey());
+
+            Assertions.assertArrayEquals(new Object[]{username}, ex.getArgs());
 
             verify(userRepository).findUserByUsername(username);
 
@@ -207,7 +215,11 @@ public class UserServiceImplTest {
 
             when(userRepository.findById(uuid)).thenReturn(Optional.empty());
 
-            Assertions.assertThrows(NotFoundException.class, () -> userService.getUserById(uuid));
+            NotFoundException ex = Assertions.assertThrows(NotFoundException.class, () -> userService.getUserById(uuid));
+
+            Assertions.assertEquals("err.user.notFound", ex.getKey());
+
+            Assertions.assertArrayEquals(new Object[]{uuid}, ex.getArgs());
 
             verify(userRepository).findById(uuid);
 

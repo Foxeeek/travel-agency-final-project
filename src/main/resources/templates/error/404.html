@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragments/layout :: head('Error')}">
+<head th:replace="~{fragments/layout :: head(#{error.title})}">
 </head>
 
 <body>
 
 <div class="container mt-5 text-center">
 
-    <h1 class="display-4">
-        404
+    <h1 class="display-4" th:text="#{error.title}">
     </h1>
 
-    <p class="lead">
-        Page not found
+    <p class="lead" th:text="#{error.404}">
     </p>
 
     <a class="btn btn-primary"
-       th:href="@{/vouchers}">
-        Back to vouchers
+       th:href="@{/vouchers}"
+       th:text="#{error.back}">
     </a>
 
 </div>

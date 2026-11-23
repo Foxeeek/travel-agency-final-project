@@ -5,10 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 public class LoginRequestDTO {
 
 
-    @NotBlank(message = "must not be blank")
+    @NotBlank(message = "{validation.notBlank}")
     private String username;
 
-    @NotBlank(message = "must not be blank")
+    @NotBlank(message = "{validation.notBlank}")
     private String password;
 
     public String getPassword() {

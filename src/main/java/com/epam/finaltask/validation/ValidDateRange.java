@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = {VoucherDateRangeValidator.class, FilterDateRangeValidator.class})
 public @interface ValidDateRange {
-    String message() default "eviction date must not be before arrival date";
+    String message() default "{validation.dateRange}";
 
     Class<?>[] groups() default {};
 
