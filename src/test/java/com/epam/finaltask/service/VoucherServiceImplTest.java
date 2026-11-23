@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
@@ -203,6 +204,51 @@ public class VoucherServiceImplTest {
             assertThrows(NotFoundException.class, () -> voucherService.delete(id.toString()));
 
             verify(voucherRepository, never()).delete(any(Voucher.class));
+        }
+
+        @Test
+        void delete_VoucherOrderedByUser_ThrowsConflictExceptionAndKeepsVoucher() {
+            UUID voucherId = UUID.randomUUID();
+            Voucher voucher = new Voucher();
+            voucher.setId(voucherId);
+            voucher.setUser(new User());
+
+            when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
+
+            assertThrows(ConflictException.class, () -> voucherService.delete(voucherId.toString()));
+
+            verify(voucherRepository, never()).delete(any(Voucher.class));
+        }
+    }
+
+    @Nested
+    class FindByIdTest {
+
+        @Test
+        void findById_ExistingVoucher_ReturnsMappedDto() {
+            UUID id = UUID.randomUUID();
+            Voucher voucher = new Voucher();
+            voucher.setId(id);
+            VoucherDTO dto = buildVoucherDTO();
+
+            when(voucherRepository.findById(id)).thenReturn(Optional.of(voucher));
+            when(voucherMapper.toVoucherDTO(voucher)).thenReturn(dto);
+
+            VoucherDTO result = voucherService.findById(id.toString());
+
+            Assertions.assertSame(dto, result);
+            verify(voucherRepository).findById(id);
+        }
+
+        @Test
+        void findById_VoucherNotFound_ThrowsNotFoundException() {
+            UUID id = UUID.randomUUID();
+
+            when(voucherRepository.findById(id)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> voucherService.findById(id.toString()));
+
+            verifyNoInteractions(voucherMapper);
         }
     }
 

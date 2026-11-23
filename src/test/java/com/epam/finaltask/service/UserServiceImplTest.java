@@ -6,6 +6,7 @@ import com.epam.finaltask.dto.UserUpdateRequestDTO;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.UserMapper;
+import com.epam.finaltask.model.Role;
 import com.epam.finaltask.model.User;
 import com.epam.finaltask.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
@@ -18,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -247,6 +249,68 @@ public class UserServiceImplTest {
 
 
     @Nested
+    class ChangeRoleTest {
+
+        @Test
+        void changeAccountRole_UserExists_SetsRoleSavesAndReturnsDto() {
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+            user.setRole(Role.USER);
+            UserResponseDTO dto = new UserResponseDTO();
+
+            when(userRepository.findById(id)).thenReturn(Optional.of(user));
+            when(userMapper.toUserResponseDTO(user)).thenReturn(dto);
+
+            UserResponseDTO result = userService.changeAccountRole(id, Role.MANAGER);
+
+            assertSame(dto, result);
+            assertEquals(Role.MANAGER, user.getRole());
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void changeAccountRole_UserNotFound_ThrowsNotFoundException() {
+            UUID id = UUID.randomUUID();
+
+            when(userRepository.findById(id)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> userService.changeAccountRole(id, Role.ADMIN));
+
+            verify(userRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    class FindAllTest {
+
+        @Test
+        void findAll_UsersExist_ReturnsMappedDtos() {
+            User first = new User();
+            User second = new User();
+            UserResponseDTO firstDto = new UserResponseDTO();
+            UserResponseDTO secondDto = new UserResponseDTO();
+
+            when(userRepository.findAll()).thenReturn(List.of(first, second));
+            when(userMapper.toUserResponseDTO(first)).thenReturn(firstDto);
+            when(userMapper.toUserResponseDTO(second)).thenReturn(secondDto);
+
+            List<UserResponseDTO> result = userService.findAll();
+
+            assertEquals(List.of(firstDto, secondDto), result);
+        }
+
+        @Test
+        void findAll_NoUsers_ReturnsEmptyList() {
+            when(userRepository.findAll()).thenReturn(List.of());
+
+            assertTrue(userService.findAll().isEmpty());
+
+            verifyNoInteractions(userMapper);
+        }
+    }
+
+    @Nested
     class ProfileTest {
 
         @Test
@@ -323,6 +387,28 @@ public class UserServiceImplTest {
             assertEquals("+380509998877", user.getPhoneNumber());
             assertEquals("oldHash", user.getPassword());
             verifyNoInteractions(passwordEncoder);
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void updateProfile_OnlyPassword_EncodesPasswordAndKeepsPhone() {
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+            user.setPhoneNumber("+380501112233");
+            user.setPassword("oldHash");
+
+            UserUpdateRequestDTO request = new UserUpdateRequestDTO();
+            request.setPassword("NewPass456!");
+
+            when(userRepository.findById(id)).thenReturn(Optional.of(user));
+            when(passwordEncoder.encode("NewPass456!")).thenReturn("newHash");
+            when(userMapper.toUserResponseDTO(user)).thenReturn(new UserResponseDTO());
+
+            userService.updateProfile(id, request);
+
+            assertEquals("+380501112233", user.getPhoneNumber());
+            assertEquals("newHash", user.getPassword());
             verify(userRepository).save(user);
         }
 

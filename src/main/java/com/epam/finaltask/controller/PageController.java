@@ -4,10 +4,7 @@ import com.epam.finaltask.auth.CustomUserDetails;
 import com.epam.finaltask.dto.*;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
-import com.epam.finaltask.model.HotelType;
-import com.epam.finaltask.model.TourType;
-import com.epam.finaltask.model.TransferType;
-import com.epam.finaltask.model.VoucherStatus;
+import com.epam.finaltask.model.*;
 import com.epam.finaltask.service.UserService;
 import com.epam.finaltask.service.VoucherOrderService;
 import com.epam.finaltask.service.VoucherService;
@@ -289,9 +286,31 @@ public class PageController {
         } catch (NotFoundException e) {
             redirect.addFlashAttribute("error", e.getMessage());
         }
+
         return "redirect:/manage/users";
     }
 
+    @PostMapping("/manage/users/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String changeUsersRole(@PathVariable UUID id,
+                                    @RequestParam Role role,
+                                    @AuthenticationPrincipal CustomUserDetails principal,
+                                    RedirectAttributes redirect) {
+
+
+        if (id.equals(principal.getUser().getId())) {
+            redirect.addFlashAttribute("error", "You cannot change your own role");
+            return "redirect:/manage/users";
+        }
+
+        try {
+            userService.changeAccountRole(id, role);
+            redirect.addFlashAttribute("message", "Role successful changed");
+        } catch (NotFoundException e) {
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/manage/users";
+    }
     @PostMapping("/profile")
     public String updateProfile(@Valid @ModelAttribute("profileForm") UserUpdateRequestDTO form,
                                 BindingResult result, @AuthenticationPrincipal CustomUserDetails principal,

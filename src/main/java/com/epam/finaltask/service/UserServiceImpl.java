@@ -6,6 +6,7 @@ import com.epam.finaltask.dto.UserUpdateRequestDTO;
 import com.epam.finaltask.exception.ConflictException;
 import com.epam.finaltask.exception.NotFoundException;
 import com.epam.finaltask.mapper.UserMapper;
+import com.epam.finaltask.model.Role;
 import com.epam.finaltask.model.User;
 import com.epam.finaltask.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,15 @@ public class UserServiceImpl implements UserService {
         user.setActive(status);
         userRepository.save(user);
         log.info("Account status of user {} changed, active={}", user.getUsername(), user.isActive());
+        return userMapper.toUserResponseDTO(user);
+    }
+
+    @Override
+    public UserResponseDTO changeAccountRole(UUID id, Role role) {
+        User user = userById(id);
+        user.setRole(role);
+        userRepository.save(user);
+        log.info("Account role of user {} changed, role={}", user.getUsername(), user.getRole());
         return userMapper.toUserResponseDTO(user);
     }
 

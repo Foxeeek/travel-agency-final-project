@@ -138,6 +138,12 @@ public class GlobalExceptionHandler {
             return errorPage(HttpStatus.BAD_REQUEST, e.getMessage());       // наш текст безпечний
         }
 
+        @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+        public ModelAndView handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+            log.warn("Invalid value for parameter {}", e.getName());
+            return errorPage(HttpStatus.BAD_REQUEST, "Invalid request parameter");
+        }
+
         @ExceptionHandler(AccessDeniedException.class)
         public ModelAndView handleAccessDenied(AccessDeniedException e) {
             return errorPage(HttpStatus.FORBIDDEN, "Access denied");

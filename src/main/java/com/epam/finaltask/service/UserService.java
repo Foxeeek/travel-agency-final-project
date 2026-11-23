@@ -3,6 +3,7 @@ package com.epam.finaltask.service;
 import com.epam.finaltask.dto.UserDTO;
 import com.epam.finaltask.dto.UserResponseDTO;
 import com.epam.finaltask.dto.UserUpdateRequestDTO;
+import com.epam.finaltask.model.Role;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +14,8 @@ public interface UserService {
     UserDTO getUserByUsername(String username);
 
     UserResponseDTO changeAccountStatus(UUID id, boolean status);
+
+    UserResponseDTO changeAccountRole(UUID id, Role role);
 
     UserDTO getUserById(UUID id);
 
