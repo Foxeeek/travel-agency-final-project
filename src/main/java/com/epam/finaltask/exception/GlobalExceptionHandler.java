@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -130,42 +132,59 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ControllerAdvice(basePackages = "com.epam.finaltask.controller")              // тільки для сторінкових контролерів
-    @Order(Ordered.HIGHEST_PRECEDENCE)                         // спрацьовує раніше за REST-обробник
+    @ControllerAdvice(basePackages = "com.epam.finaltask.controller")
+    @Order(Ordered.HIGHEST_PRECEDENCE)
     public class PageExceptionHandler {
+        private final MessageSource messageSource;
+
+        public PageExceptionHandler(MessageSource messageSource) {
+            this.messageSource = messageSource;
+        }
+
         private static final Logger log = LoggerFactory.getLogger(PageExceptionHandler.class);
 
         @ExceptionHandler(IllegalArgumentException.class)
         public ModelAndView handleBadRequest(IllegalArgumentException e) {
-            return errorPage(HttpStatus.BAD_REQUEST, e.getMessage());       // наш текст безпечний
+            return errorPage(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
         @ExceptionHandler(MethodArgumentTypeMismatchException.class)
         public ModelAndView handleTypeMismatch(MethodArgumentTypeMismatchException e) {
             log.warn("Invalid value for parameter {}", e.getName());
-            return errorPage(HttpStatus.BAD_REQUEST, "Invalid request parameter");
+            return errorPage(HttpStatus.BAD_REQUEST, msg("error.param.invalid"));
         }
 
         @ExceptionHandler(AccessDeniedException.class)
-        public ModelAndView handleAccessDenied(AccessDeniedException e , HttpServletRequest request) {
+        public ModelAndView handleAccessDenied(AccessDeniedException e, HttpServletRequest request) {
             log.warn("Access denied for user '{}' to page '{}'",
                     SecurityContextHolder.getContext().getAuthentication().getName(),
                     request.getRequestURI());
-            return errorPage(HttpStatus.FORBIDDEN, "Access denied");
+            return errorPage(HttpStatus.FORBIDDEN, msg("error.access.denied"));
         }
 
         @ExceptionHandler(Exception.class)
         public ModelAndView handleOther(Exception e) {
-            log.error("Unexpected error", e);                               // стек пишемо ТІЛЬКИ в лог
-            return errorPage(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong");
+            log.error("Unexpected error", e);
+            return errorPage(HttpStatus.INTERNAL_SERVER_ERROR, msg("error.default"));
         }
 
         private ModelAndView errorPage(HttpStatus status, String message) {
-            ModelAndView mav = new ModelAndView("error");                   // templates/error.html
-            mav.setStatus(status);                                          // код відповіді (400/403/500)
+            ModelAndView mav = new ModelAndView("error");
+            mav.setStatus(status);
             mav.addObject("status", status.value());
             mav.addObject("message", message);
             return mav;
+        }
+
+        private String msg(String key) {
+            return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
+        }
+
+        private String exceptionMsg(LocalizedException e) {
+            if (e.getKey() == null) {
+                return e.getMessage();
+            }
+            return messageSource.getMessage(e.getKey(), e.getArgs(), LocaleContextHolder.getLocale());
         }
     }
 

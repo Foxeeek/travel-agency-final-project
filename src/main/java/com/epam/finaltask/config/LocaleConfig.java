@@ -13,14 +13,19 @@ import java.util.Locale;
 
 @Configuration
 public class LocaleConfig implements WebMvcConfigurer {
-    @Bean public LocaleResolver localeResolver() {
+    @Bean
+    public LocaleResolver localeResolver() {
         CookieLocaleResolver r = new CookieLocaleResolver("lang");
         r.setDefaultLocale(Locale.ENGLISH);
-        return r; }
+        return r;
+    }
 
-    @Bean public LocaleChangeInterceptor localeInterceptor() {
+    @Bean
+    public LocaleChangeInterceptor localeInterceptor() {
         LocaleChangeInterceptor i = new LocaleChangeInterceptor();
-        i.setParamName("lang"); return i; }
+        i.setParamName("lang");
+        return i;
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

@@ -47,7 +47,6 @@ public class UserServiceImplTest {
 
         @Test
         void getUserByUsername_UserExists_Success() {
-            // Given
             String username = "existingUser";
             User user = new User();
             user.setUsername(username);
@@ -58,10 +57,8 @@ public class UserServiceImplTest {
             when(userRepository.findUserByUsername(username)).thenReturn(Optional.of(user));
             when(userMapper.toUserDTO(any(User.class))).thenReturn(expectedUserDTO);
 
-            // When
             UserDTO result = userService.getUserByUsername(username);
 
-            // Then
             assertNotNull(result, "The returned UserDTO should not be null");
             assertEquals(expectedUserDTO.getUsername(), result.getUsername(),
                     "The username should match the expected value");
@@ -72,7 +69,7 @@ public class UserServiceImplTest {
 
         @Test
         void changeAccountStatus_UserExist_Success() {
-            // Given
+
             UUID userId = UUID.randomUUID();
 
             User user = new User();
@@ -84,10 +81,8 @@ public class UserServiceImplTest {
             when(userRepository.findById(userId)).thenReturn(Optional.of(user));
             when(userMapper.toUserResponseDTO(user)).thenReturn(responseDTO);
 
-            // When
             UserResponseDTO result = userService.changeAccountStatus(userId, true);
 
-            // Then
             assertSame(responseDTO, result);
             assertTrue(user.isActive(), "The account status should be updated to true");
 
@@ -97,7 +92,6 @@ public class UserServiceImplTest {
 
         @Test
         void getUserById_UserExist_Success() {
-            // Given
             UUID id = UUID.randomUUID();
             User user = new User();
             user.setId(id);
@@ -108,10 +102,8 @@ public class UserServiceImplTest {
             when(userRepository.findById(id)).thenReturn(Optional.of(user));
             when(userMapper.toUserDTO(any(User.class))).thenReturn(expectedUserDTO);
 
-            // When
             UserDTO resultDTO = userService.getUserById(id);
 
-            // Then
             assertNotNull(resultDTO, "The returned UserDTO should not be null");
             assertEquals(expectedUserDTO.getId(), resultDTO.getId(),
                     "The user ID should match the expected value");
@@ -134,7 +126,6 @@ public class UserServiceImplTest {
             userDTO.setUsername(usrName);
             userDTO.setPassword(rawPwd);
 
-
             when(userRepository.existsByUsername(usrName)).thenReturn(false);
             when(passwordEncoder.encode(rawPwd)).thenReturn("hashedPassword");
             when(userMapper.toUserDTO(user)).thenReturn(userDTO);
@@ -150,7 +141,6 @@ public class UserServiceImplTest {
             assertSame(user, captor.getValue());
 
             assertEquals("hashedPassword", userDTO.getPassword());
-
         }
 
         @Test
@@ -188,7 +178,6 @@ public class UserServiceImplTest {
             Assertions.assertArrayEquals(new Object[]{username}, ex.getArgs());
 
             verify(userRepository).findUserByUsername(username);
-
         }
 
         @Test
@@ -206,7 +195,6 @@ public class UserServiceImplTest {
 
             verify(userRepository, times(1)).findUserByUsername(username);
             verify(userMapper, times(1)).toUserDTO(any(User.class));
-
         }
 
         @Test
@@ -222,7 +210,6 @@ public class UserServiceImplTest {
             Assertions.assertArrayEquals(new Object[]{uuid}, ex.getArgs());
 
             verify(userRepository).findById(uuid);
-
         }
 
         @Test
@@ -241,7 +228,6 @@ public class UserServiceImplTest {
 
             verify(userRepository, times(1)).findById(uuid);
             verify(userMapper, times(1)).toUserDTO(any(User.class));
-
         }
 
 
@@ -255,8 +241,6 @@ public class UserServiceImplTest {
 
             verify(userRepository, never()).save(any());
         }
-
-
     }
 
 

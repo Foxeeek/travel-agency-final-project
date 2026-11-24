@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequestMapping("/api/auth")
 public class AuthenticationRestController {
@@ -63,6 +62,7 @@ public class AuthenticationRestController {
         ResponseCookie cookie = ResponseCookie.from(JwtAuthenticationFilter.COOKIE_NAME, authToken)
                 .httpOnly(true).path("/")
                 .maxAge(86400)
+                .sameSite("Strict")
                 .build();
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(new ApiResponse<>("OK", "Login successful", authToken));
@@ -73,6 +73,7 @@ public class AuthenticationRestController {
         ResponseCookie cookie = ResponseCookie.from(JwtAuthenticationFilter.COOKIE_NAME, "")
                 .httpOnly(true).path("/")
                 .maxAge(0)
+                .sameSite("Strict")
                 .build();
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(new ApiResponse<>("OK", "Logout successful", null));

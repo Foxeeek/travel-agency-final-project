@@ -41,7 +41,6 @@ public class CustomUserDetailsServiceTest {
 
     }
 
-
     @Test
     void loadUserByUsername_UserExists_ReturnsDetailsWithRoleAndEnabledFlag() {
         String username = "existingUser";
@@ -59,7 +58,6 @@ public class CustomUserDetailsServiceTest {
 
         verify(userRepository).findUserByUsername(username);
     }
-
 
     @Test
     void loadUserByUsername_BlockedUser_ReturnsDisabledDetails() {

@@ -59,7 +59,7 @@ public class PageController {
     }
 
     @InitBinder
-    public void initBinder(WebDataBinder binder){
+    public void initBinder(WebDataBinder binder) {
         binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
     }
 
@@ -93,6 +93,7 @@ public class PageController {
                     .httpOnly(true)
                     .path("/")
                     .maxAge(86400)
+                    .sameSite("Strict")
                     .build();
 
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -112,6 +113,7 @@ public class PageController {
                 .httpOnly(true)
                 .path("/")
                 .maxAge(0)
+                .sameSite("Strict")
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -129,7 +131,7 @@ public class PageController {
             redirect.addFlashAttribute("message", msg("msg.ordered"));
 
         } catch (ConflictException | NotFoundException e) {
-            redirect.addFlashAttribute("error",  exceptionMsg(e));
+            redirect.addFlashAttribute("error", exceptionMsg(e));
         }
 
         return "redirect:/vouchers";
@@ -178,7 +180,7 @@ public class PageController {
             voucherOrderService.changeStatus(id, status);
             redirect.addFlashAttribute("message", msg("msg.status.changed"));
         } catch (ConflictException | NotFoundException e) {
-            redirect.addFlashAttribute("error",  exceptionMsg(e));
+            redirect.addFlashAttribute("error", exceptionMsg(e));
         }
         return "redirect:/manage";
     }
@@ -191,12 +193,11 @@ public class PageController {
             voucherService.delete(id);
             redirect.addFlashAttribute("message", msg("msg.deleted"));
         } catch (NotFoundException | ConflictException e) {
-            redirect.addFlashAttribute("error",  exceptionMsg(e));
+            redirect.addFlashAttribute("error", exceptionMsg(e));
         }
         return "redirect:/manage";
     }
 
-    //    -------------------
     @GetMapping("/manage/vouchers/new")
     @PreAuthorize("hasRole('ADMIN')")
     public String newVoucherForm(Model model) {
@@ -257,9 +258,10 @@ public class PageController {
         try {
             voucherService.update(id.toString(), form);
             redirect.addFlashAttribute("message", msg("msg.updated"));
-        } catch (NotFoundException e) {
-            redirect.addFlashAttribute("error",  exceptionMsg(e));
+        } catch (NotFoundException | ConflictException e) {
+            redirect.addFlashAttribute("error", exceptionMsg(e));
         }
+
         return "redirect:/manage";
     }
 
@@ -287,7 +289,7 @@ public class PageController {
             userService.changeAccountStatus(id, active);
             redirect.addFlashAttribute("message", active ? msg("msg.user.unblocked") : msg("msg.user.blocked"));
         } catch (NotFoundException e) {
-            redirect.addFlashAttribute("error",  exceptionMsg(e));
+            redirect.addFlashAttribute("error", exceptionMsg(e));
         }
 
         return "redirect:/manage/users";
@@ -296,9 +298,9 @@ public class PageController {
     @PostMapping("/manage/users/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
     public String changeUsersRole(@PathVariable UUID id,
-                                    @RequestParam Role role,
-                                    @AuthenticationPrincipal CustomUserDetails principal,
-                                    RedirectAttributes redirect) {
+                                  @RequestParam Role role,
+                                  @AuthenticationPrincipal CustomUserDetails principal,
+                                  RedirectAttributes redirect) {
 
 
         if (id.equals(principal.getUser().getId())) {
@@ -314,27 +316,29 @@ public class PageController {
         }
         return "redirect:/manage/users";
     }
+
     @PostMapping("/profile")
     public String updateProfile(@Valid @ModelAttribute("profileForm") UserUpdateRequestDTO form,
                                 BindingResult result, @AuthenticationPrincipal CustomUserDetails principal,
-                                RedirectAttributes redirect, Model model){
+                                RedirectAttributes redirect, Model model) {
 
-        if (result.hasErrors()){
+        if (result.hasErrors()) {
             model.addAttribute("profile", userService.getProfile(principal.getUser().getId()));
             model.addAttribute("vouchers", voucherService.findAllByUserId(principal.getUser().getId().toString()));
             return "profile";
         }
 
-        userService.updateProfile(principal.getUser().getId(),form);
+        userService.updateProfile(principal.getUser().getId(), form);
         redirect.addFlashAttribute("message", msg("msg.profile.updated"));
         return "redirect:/profile";
     }
 
-    private String msg(String key){
+    private String msg(String key) {
         return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
     }
-    private String exceptionMsg(LocalizedException e){
-        if (e.getKey() == null){
+
+    private String exceptionMsg(LocalizedException e) {
+        if (e.getKey() == null) {
             return e.getMessage();
         }
         return messageSource.getMessage(e.getKey(), e.getArgs(), LocaleContextHolder.getLocale());

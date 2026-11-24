@@ -34,13 +34,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = extractToken(request);
 
 
-
         if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (!jwtService.isTokenValid(token)){
+        if (!jwtService.isTokenValid(token)) {
             log.debug("Invalid or expired JWT for {}", request.getRequestURI());
             filterChain.doFilter(request, response);
             return;

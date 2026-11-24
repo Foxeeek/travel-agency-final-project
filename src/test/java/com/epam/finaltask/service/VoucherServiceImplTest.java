@@ -56,9 +56,11 @@ public class VoucherServiceImplTest {
         voucherDTO.setHotelType("FIVE_STARS");
         voucherDTO.setStatus("REGISTERED");
         voucherDTO.setTransferType("xxxxx");
+
         voucherDTO.setArrivalDate(LocalDate.of(2027, 7, 10));
         voucherDTO.setEvictionDate(LocalDate.of(2027, 7, 17));
         voucherDTO.setIsHot(true);
+
         return voucherDTO;
     }
 
@@ -71,9 +73,11 @@ public class VoucherServiceImplTest {
         voucher.setHotelType(HotelType.FIVE_STARS);
         voucher.setStatus(VoucherStatus.REGISTERED);
         voucher.setTransferType(TransferType.PLANE);
+
         voucher.setArrivalDate(LocalDate.of(2027, 7, 10));
         voucher.setEvictionDate(LocalDate.of(2027, 7, 17));
         voucher.setIsHot(true);
+
         return voucher;
     }
 
@@ -85,9 +89,11 @@ public class VoucherServiceImplTest {
         request.setTourType(TourType.ADVENTURE);
         request.setHotelType(HotelType.FIVE_STARS);
         request.setTransferType(TransferType.PLANE);
+
         request.setArrivalDate(LocalDate.of(2027, 7, 10));
         request.setEvictionDate(LocalDate.of(2027, 7, 17));
         request.setIsHot(true);
+
         return request;
     }
 
@@ -130,6 +136,26 @@ public class VoucherServiceImplTest {
         }
 
         @Test
+        void update_VoucherOrderedByUser_ThrowsConflictExceptionAndDoesNotSave() {
+            UUID id = UUID.randomUUID();
+            Voucher voucher = new Voucher();
+            voucher.setId(id);
+            voucher.setTitle("Original");
+            voucher.setUser(new User());
+            VoucherRequestDTO request = buildVoucherRequest();
+
+            when(voucherRepository.findById(id)).thenReturn(Optional.of(voucher));
+
+            ConflictException ex = assertThrows(ConflictException.class, () -> voucherService.update(id.toString(), request));
+
+            Assertions.assertEquals("err.voucher.orderedCannotUpdate", ex.getKey());
+            Assertions.assertEquals(0, ex.getArgs().length);
+            Assertions.assertEquals("Original", voucher.getTitle());
+            verify(voucherRepository, never()).save(any());
+            verifyNoInteractions(voucherMapper);
+        }
+
+        @Test
         void update_ExistingVoucher_UpdatesAllFieldsAndSaves() {
             UUID id = UUID.randomUUID();
             Voucher voucher = new Voucher();
@@ -158,21 +184,19 @@ public class VoucherServiceImplTest {
         }
 
         @Test
-        void update_DoesNotChangeStatusOrOwner() {
+        void update_FreeVoucher_DoesNotChangeStatusAndStaysWithoutOwner() {
             UUID id = UUID.randomUUID();
-            User owner = new User();
             Voucher voucher = new Voucher();
             voucher.setId(id);
-            voucher.setStatus(VoucherStatus.PAID);
-            voucher.setUser(owner);
+            voucher.setStatus(VoucherStatus.REGISTERED);
 
             when(voucherRepository.findById(id)).thenReturn(Optional.of(voucher));
             when(voucherMapper.toVoucherDTO(voucher)).thenReturn(buildVoucherDTO());
 
             voucherService.update(id.toString(), buildVoucherRequest());
 
-            Assertions.assertEquals(VoucherStatus.PAID, voucher.getStatus());
-            Assertions.assertSame(owner, voucher.getUser());
+            Assertions.assertEquals(VoucherStatus.REGISTERED, voucher.getStatus());
+            Assertions.assertNull(voucher.getUser());
         }
     }
 
@@ -181,7 +205,6 @@ public class VoucherServiceImplTest {
         @Test
         void delete_ExistingVoucher_DeletesVoucher() {
             UUID voucherId = UUID.randomUUID();
-
             Voucher voucher = new Voucher();
 
             when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
@@ -189,20 +212,17 @@ public class VoucherServiceImplTest {
             voucherService.delete(voucherId.toString());
 
             Assertions.assertFalse(voucherRepository.existsById(voucherId));
-
             verify(voucherRepository).delete(voucher);
         }
 
         @Test
         void delete_VoucherNotFound_ThrowsNotFoundException() {
-            //        Given
             UUID id = UUID.randomUUID();
             VoucherDTO voucherDTO = new VoucherDTO();
-//        When
-            when(voucherRepository.findById(id)).thenReturn(Optional.empty());
-//        Then
-            assertThrows(NotFoundException.class, () -> voucherService.delete(id.toString()));
 
+            when(voucherRepository.findById(id)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> voucherService.delete(id.toString()));
             verify(voucherRepository, never()).delete(any(Voucher.class));
         }
 
@@ -573,10 +593,7 @@ public class VoucherServiceImplTest {
             Assertions.assertEquals(List.of(dto1, dto2), result);
 
             verify(voucherRepository).findAllByArrivalPeriod(from, to);
-
-
         }
-
     }
 
 

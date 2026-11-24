@@ -65,8 +65,6 @@ public class UserRestControllerTest {
         return new CustomUserDetails(user);
     }
 
-    // ---------- PATCH /api/users/{id}/status (block / unblock, admin only) ----------
-
     @Test
     @WithMockUser(authorities = "ROLE_ADMIN")
     void changeUserStatus_AsAdmin_Returns200() throws Exception {
@@ -136,8 +134,6 @@ public class UserRestControllerTest {
         verify(userService).changeAccountStatus(eq(id), eq(false));
     }
 
-    // ---------- GET /api/users/me ----------
-
     @Test
     void getProfile_AuthenticatedUser_Returns200() throws Exception {
         UUID userId = UUID.randomUUID();
@@ -163,7 +159,6 @@ public class UserRestControllerTest {
         verifyNoInteractions(userService);
     }
 
-    // ---------- PATCH /api/users/me ----------
 
     @Test
     void updateProfile_ValidData_Returns200() throws Exception {
@@ -214,8 +209,6 @@ public class UserRestControllerTest {
 
         verifyNoInteractions(userService);
     }
-
-    // ---------- GET /api/users/me/vouchers ----------
 
     @Test
     void getMyVouchers_ReturnsVouchersOfCurrentUser() throws Exception {

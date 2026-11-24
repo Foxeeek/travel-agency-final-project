@@ -528,8 +528,6 @@ public class VoucherRestControllerTest {
         return new CustomUserDetails(user);
     }
 
-    // ---------- POST /api/vouchers/{id}/order ----------
-
     @Test
     void order_AsUser_Returns200() throws Exception {
         UUID voucherId = UUID.randomUUID();
@@ -589,8 +587,6 @@ public class VoucherRestControllerTest {
         verify(voucherOrderService).order(voucherId, userId);
     }
 
-    // ---------- GET /api/vouchers/user/{userId}/status (manager, admin or owner) ----------
-
     @Test
     void findAllByUserIdAndStatus_AsOwner_Returns200() throws Exception {
         UUID ownerId = UUID.randomUUID();
@@ -619,8 +615,6 @@ public class VoucherRestControllerTest {
 
         verifyNoInteractions(voucherService);
     }
-
-    // ---------- GET /api/vouchers/search ----------
 
     @Test
     @WithMockUser
@@ -697,8 +691,6 @@ public class VoucherRestControllerTest {
 
         verifyNoInteractions(voucherService);
     }
-
-    // ---------- POST /api/vouchers : custom @ValidDateRange ----------
 
     @Test
     @WithMockUser(authorities = "ROLE_ADMIN")

@@ -11,20 +11,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class SecurityEventLogger {
     @EventListener
-    public void onAuthenticationSuccess(AuthenticationSuccessEvent event){
+    public void onAuthenticationSuccess(AuthenticationSuccessEvent event) {
         log.info("User '{}' successfully authenticated", event.getAuthentication().getName());
-}
+    }
 
     @EventListener
-    public void onAccountDisabled(AuthenticationFailureDisabledEvent event){
+    public void onAccountDisabled(AuthenticationFailureDisabledEvent event) {
         log.warn("Login attempt by blocked user '{}'", event.getAuthentication().getName());
     }
 
     @EventListener
-    public void onBadCredentials(AuthenticationFailureBadCredentialsEvent event){
-        log.warn("Login failed for user '{}': bad credentials",event.getAuthentication().getName());
+    public void onBadCredentials(AuthenticationFailureBadCredentialsEvent event) {
+        log.warn("Login failed for user '{}': bad credentials", event.getAuthentication().getName());
     }
-
 
 
 }

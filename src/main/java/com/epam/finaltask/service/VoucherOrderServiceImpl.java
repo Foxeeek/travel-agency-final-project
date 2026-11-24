@@ -34,7 +34,7 @@ public class VoucherOrderServiceImpl implements VoucherOrderService {
         return voucherRepository.findById(id)
                 .orElseThrow(() -> {
                             log.warn("Voucher with id {} not found", id);
-                            return new NotFoundException("Voucher " + id + " not found", "err.voucher.notFound",id);
+                            return new NotFoundException("Voucher " + id + " not found", "err.voucher.notFound", id);
                         }
                 );
     }
@@ -43,7 +43,7 @@ public class VoucherOrderServiceImpl implements VoucherOrderService {
         return userRepository.findById(id)
                 .orElseThrow(() -> {
                             log.warn("User with id {} not found", id);
-                            return new NotFoundException("User " + id + " not found", "err.user.notFound",id);
+                            return new NotFoundException("User " + id + " not found", "err.user.notFound", id);
                         }
                 );
     }
@@ -61,11 +61,11 @@ public class VoucherOrderServiceImpl implements VoucherOrderService {
         }
         if (voucher.getStatus() != VoucherStatus.REGISTERED) {
             log.warn("Voucher {} has status {}, only REGISTERED can be ordered", id, voucher.getStatus());
-            throw new ConflictException("Only REGISTERED voucher can be ordered","err.voucher.onlyRegisteredOrder");
+            throw new ConflictException("Only REGISTERED voucher can be ordered", "err.voucher.onlyRegisteredOrder");
         }
         if (user.getBalance().compareTo(voucher.getPrice()) < 0) {
             log.warn("User {} has insufficient balance for voucher {}", userId, id);
-            throw new ConflictException("Insufficient balance","err.balance.insufficient");
+            throw new ConflictException("Insufficient balance", "err.balance.insufficient");
         }
 
         user.setBalance(user.getBalance().subtract(voucher.getPrice()));
@@ -86,15 +86,15 @@ public class VoucherOrderServiceImpl implements VoucherOrderService {
 
         if (voucher.getUser() == null) {
             log.warn("Voucher {} has no user, status cannot be changed", id);
-            throw new ConflictException("Voucher " + id + " has no user","err.voucher.noUser",id);
+            throw new ConflictException("Voucher " + id + " has no user", "err.voucher.noUser", id);
         }
         if (voucher.getStatus() != VoucherStatus.REGISTERED) {
             log.warn("Voucher {} has status {}, only REGISTERED can be changed", id, voucher.getStatus());
-            throw new ConflictException("Only REGISTERED voucher can change its status","err.status.onlyRegistered");
+            throw new ConflictException("Only REGISTERED voucher can change its status", "err.status.onlyRegistered");
         }
         if (!status.equals(VoucherStatus.PAID) && !status.equals(VoucherStatus.CANCELED)) {
             log.warn("Voucher {} cannot be moved to status {}", id, status);
-            throw new ConflictException("Status can only be changed to PAID or CANCELED","err.status.onlyPaidCanceled");
+            throw new ConflictException("Status can only be changed to PAID or CANCELED", "err.status.onlyPaidCanceled");
         }
 
         if (status == VoucherStatus.CANCELED) {

@@ -41,6 +41,7 @@ public class VoucherOrderServiceImplTest {
 
     private VoucherDTO buildVoucherDTO() {
         VoucherDTO voucherDTO = new VoucherDTO();
+
         voucherDTO.setTitle("Hello");
         voucherDTO.setDescription("New description");
         voucherDTO.setPrice(850.00);
@@ -48,9 +49,11 @@ public class VoucherOrderServiceImplTest {
         voucherDTO.setHotelType("FIVE_STARS");
         voucherDTO.setStatus("REGISTERED");
         voucherDTO.setTransferType("xxxxx");
+
         voucherDTO.setArrivalDate(LocalDate.of(2027, 7, 10));
         voucherDTO.setEvictionDate(LocalDate.of(2027, 7, 17));
         voucherDTO.setIsHot(true);
+
         return voucherDTO;
     }
 
@@ -63,9 +66,11 @@ public class VoucherOrderServiceImplTest {
         voucher.setHotelType(HotelType.FIVE_STARS);
         voucher.setStatus(VoucherStatus.REGISTERED);
         voucher.setTransferType(TransferType.PLANE);
+
         voucher.setArrivalDate(LocalDate.of(2027, 7, 10));
         voucher.setEvictionDate(LocalDate.of(2027, 7, 17));
         voucher.setIsHot(true);
+
         return voucher;
     }
 
@@ -99,7 +104,6 @@ public class VoucherOrderServiceImplTest {
 
             verify(voucherRepository).save(captor.capture());
             verify(userRepository).save(user);
-
         }
 
         @Test
@@ -177,7 +181,6 @@ public class VoucherOrderServiceImplTest {
 
             verify(voucherRepository, never()).save(any());
             verify(userRepository, never()).save(any());
-
         }
 
         @Test
@@ -281,7 +284,6 @@ public class VoucherOrderServiceImplTest {
             Assertions.assertSame(voucherDTO, result);
             Assertions.assertEquals(VoucherStatus.CANCELED, captor.getValue().getStatus());
             Assertions.assertEquals(0, BigDecimal.valueOf(1000).compareTo(user.getBalance()));
-
         }
 
         @Test

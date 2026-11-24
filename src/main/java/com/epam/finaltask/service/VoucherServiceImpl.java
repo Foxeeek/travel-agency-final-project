@@ -40,7 +40,7 @@ public class VoucherServiceImpl implements VoucherService {
         return voucherRepository.findById(id)
                 .orElseThrow(() -> {
                             log.warn("Voucher with id {} not found", id);
-                            return new NotFoundException("Voucher " + id + " not found","err.voucher.notFound",id);
+                            return new NotFoundException("Voucher " + id + " not found", "err.voucher.notFound", id);
                         }
                 );
     }
@@ -66,6 +66,10 @@ public class VoucherServiceImpl implements VoucherService {
     public VoucherDTO update(String id, VoucherRequestDTO request) {
 
         Voucher voucher = voucherById(UUID.fromString(id));
+        if (voucher.getUser() != null) {
+            log.warn("Voucher {} is ordered and cannot be changed", voucher.getId());
+            throw new ConflictException("Voucher is ordered and cannot be changed", "err.voucher.orderedCannotUpdate");
+        }
         voucher.setTitle(request.getTitle());
         voucher.setDescription(request.getDescription());
 
