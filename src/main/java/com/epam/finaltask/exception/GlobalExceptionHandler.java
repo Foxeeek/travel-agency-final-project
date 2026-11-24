@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -113,8 +114,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException e) {
-        log.warn("Access denied: {}", e.getMessage());
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException e, HttpServletRequest request) {
+        log.warn("Access denied for user '{}' to endpoint '{}'",
+                SecurityContextHolder.getContext().getAuthentication().getName(),
+                request.getRequestURI());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new ApiResponse<>("FORBIDDEN", "Access denied", null));
     }
@@ -130,7 +133,6 @@ public class GlobalExceptionHandler {
     @ControllerAdvice(basePackages = "com.epam.finaltask.controller")              // тільки для сторінкових контролерів
     @Order(Ordered.HIGHEST_PRECEDENCE)                         // спрацьовує раніше за REST-обробник
     public class PageExceptionHandler {
-
         private static final Logger log = LoggerFactory.getLogger(PageExceptionHandler.class);
 
         @ExceptionHandler(IllegalArgumentException.class)
@@ -145,7 +147,10 @@ public class GlobalExceptionHandler {
         }
 
         @ExceptionHandler(AccessDeniedException.class)
-        public ModelAndView handleAccessDenied(AccessDeniedException e) {
+        public ModelAndView handleAccessDenied(AccessDeniedException e , HttpServletRequest request) {
+            log.warn("Access denied for user '{}' to page '{}'",
+                    SecurityContextHolder.getContext().getAuthentication().getName(),
+                    request.getRequestURI());
             return errorPage(HttpStatus.FORBIDDEN, "Access denied");
         }
 

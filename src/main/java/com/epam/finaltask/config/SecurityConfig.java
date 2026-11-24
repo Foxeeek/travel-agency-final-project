@@ -4,6 +4,7 @@ import com.epam.finaltask.dto.ApiResponse;
 import com.epam.finaltask.token.JwtAuthenticationFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.io.IOException;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@Slf4j
 public class SecurityConfig {
     private final ObjectMapper objectMapper;
 
@@ -47,11 +49,16 @@ public class SecurityConfig {
                                             }
                                         })
 
-                                .accessDeniedHandler(
+                                .accessDeniedHandler((req, res, ex) -> {
+                                    log.warn("Access denied for user '{}' to {} {}",
+                                            req.getUserPrincipal() != null
+                                                    ? req.getUserPrincipal().getName()
+                                                    : "anonymous",
+                                            req.getMethod(),
+                                            req.getRequestURI());
 
-                                        (req, res, ex) ->
-                                                writeError(res, HttpStatus.FORBIDDEN, "FORBIDDEN", "Access denied"))
-                )
+                                    writeError(res, HttpStatus.FORBIDDEN, "FORBIDDEN", "Access denied");
+                                }))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
