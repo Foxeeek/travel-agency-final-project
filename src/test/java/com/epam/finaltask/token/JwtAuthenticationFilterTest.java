@@ -107,6 +107,34 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    void doFilter_BothBearerHeaderAndCookie_UsesTheBearerHeader() throws Exception {
+        request.addHeader("Authorization", "Bearer header.jwt");
+        request.setCookies(new Cookie(JwtAuthenticationFilter.COOKIE_NAME, "cookie.jwt"));
+        when(jwtService.isTokenValid("header.jwt")).thenReturn(true);
+        when(jwtService.extractUsername("header.jwt")).thenReturn("john");
+        when(userDetailsService.loadUserByUsername("john")).thenReturn(details(true));
+
+        filter.doFilter(request, response, chain);
+
+        assertEquals("john", SecurityContextHolder.getContext().getAuthentication().getName());
+        verify(jwtService).isTokenValid("header.jwt");
+        verify(jwtService, never()).isTokenValid("cookie.jwt");
+    }
+
+    @Test
+    void doFilter_NonBearerAuthorizationHeaderAndCookie_FallsBackToCookie() throws Exception {
+        request.addHeader("Authorization", "Basic abc");
+        request.setCookies(new Cookie(JwtAuthenticationFilter.COOKIE_NAME, "cookie.jwt"));
+        when(jwtService.isTokenValid("cookie.jwt")).thenReturn(true);
+        when(jwtService.extractUsername("cookie.jwt")).thenReturn("john");
+        when(userDetailsService.loadUserByUsername("john")).thenReturn(details(true));
+
+        filter.doFilter(request, response, chain);
+
+        assertEquals("john", SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+
+    @Test
     void doFilter_BlockedUser_DoesNotAuthenticate() throws Exception {
         request.addHeader("Authorization", "Bearer valid.jwt");
         when(jwtService.isTokenValid("valid.jwt")).thenReturn(true);

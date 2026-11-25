@@ -50,7 +50,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO register(UserDTO userDTO) {
+
+        if (userRepository.existsByPhoneNumber(userDTO.getPhoneNumber())){
+            log.warn("Registration rejected: phone number {} already exists", userDTO.getPhoneNumber());
+            throw new ConflictException("Phone number " + userDTO.getPhoneNumber() + " already exists", "err.user.phoneExists", userDTO.getPhoneNumber());
+        }
+
         if (!userRepository.existsByUsername(userDTO.getUsername())) {
+
             userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
             User user = userMapper.toUser(userDTO);
             userRepository.save(user);
@@ -107,12 +114,26 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO updateProfile(UUID id, UserUpdateRequestDTO request) {
         User user = userById(id);
-        if (request.getPhoneNumber() != null) {
+        if (request.getPhoneNumber() != null
+                && !request.getPhoneNumber().equals(user.getPhoneNumber())) {
+
+            if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+                log.warn("Updating rejected: phone number {} already exists",
+                        request.getPhoneNumber());
+
+                throw new ConflictException(
+                        "Phone number " + request.getPhoneNumber() + " already exists",
+                        "err.user.phoneExists",
+                        request.getPhoneNumber()
+                );
+            }
+
             user.setPhoneNumber(request.getPhoneNumber());
         }
         if (request.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
+
         userRepository.save(user);
         log.info("User {} profile updated", user.getUsername());
         return userMapper.toUserResponseDTO(user);

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{fragments/layout :: head(#{register.title})}">
+</head>
+
+<body>
+
+<div class="container mt-5" style="max-width: 420px;">
+
+    <h2 class="mb-4" th:text="#{register.title}"></h2>
+
+    <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
+
+    <a class="navbar-brand"
+       th:href="@{''(lang='uk')}">
+        UK
+    </a>
+    <a class="navbar-brand"
+       th:href="@{''(lang='en')}">
+        EN
+    </a>
+
+    <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+    <form th:action="@{/register}" th:object="${registerForm}" method="post">
+
+        <div class="mb-3">
+        <label for="phoneNumber" class="form-label" th:text="#{register.phone}"></label>
+        <input class="form-control" id="phoneNumber" th:field="*{phoneNumber}"
+               placeholder="+3801234567">
+        <div class="text-danger" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></div>
+        </div>
+
+        <div class="mb-3">
+        <label for="username" class="form-label" th:text="#{login.username}"></label>
+        <input class="form-control" id="username" th:field="*{username}"
+               th:placeholder="#{login.username.placeholder}">
+        <div class="text-danger" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+        </div>
+
+        <div class="mb-3">
+        <label for="password" class="form-label" th:text="#{login.password}"></label>
+        <input type="password" class="form-control" id="password" th:field="*{password}"
+               th:placeholder="#{login.password.placeholder}">
+        <div class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+        </div>
+
+
+        <button type="submit" class="btn btn-primary w-100" th:text="#{register.submit}"></button>
+
+    </form>
+
+    <p class="mt-3 text-center">
+        <span th:text="#{register.haveAccount}"></span>
+        <a th:href="@{/login}" th:text="#{register.loginLink}"></a>
+    </p>
+
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}">
+</th:block>
+
+</body>
+</html>

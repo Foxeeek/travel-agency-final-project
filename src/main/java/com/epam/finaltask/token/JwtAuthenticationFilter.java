@@ -66,6 +66,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Cookie[] cookies = request.getCookies();
         String header = request.getHeader("Authorization");
 
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
+        }
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (COOKIE_NAME.equals(cookie.getName())) {
@@ -73,11 +76,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         }
-
-        if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(7);
-        }
-
         return null;
     }
 

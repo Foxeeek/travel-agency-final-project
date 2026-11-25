@@ -278,6 +278,102 @@ public class UserServiceImplTest {
     }
 
     @Nested
+    class PhoneUniquenessTest {
+
+        private UserDTO newUser() {
+            UserDTO dto = new UserDTO();
+            dto.setUsername("newuser");
+            dto.setPassword("Newpass1!");
+            dto.setPhoneNumber("+380501112233");
+            return dto;
+        }
+
+        @Test
+        void register_PhoneAlreadyUsed_ThrowsConflictWithPhoneKeyAndDoesNotSave() {
+            UserDTO dto = newUser();
+            when(userRepository.existsByPhoneNumber("+380501112233")).thenReturn(true);
+
+            ConflictException ex = assertThrows(ConflictException.class, () -> userService.register(dto));
+
+            assertEquals("err.user.phoneExists", ex.getKey());
+            assertArrayEquals(new Object[]{"+380501112233"}, ex.getArgs());
+            verify(userRepository, never()).save(any());
+            verifyNoInteractions(passwordEncoder);
+        }
+
+        @Test
+        void register_UsernameTakenAndPhoneFree_ThrowsConflictWithUsernameKey() {
+            UserDTO dto = newUser();
+            when(userRepository.existsByPhoneNumber("+380501112233")).thenReturn(false);
+            when(userRepository.existsByUsername("newuser")).thenReturn(true);
+
+            ConflictException ex = assertThrows(ConflictException.class, () -> userService.register(dto));
+
+            assertEquals("err.user.exists", ex.getKey());
+            assertArrayEquals(new Object[]{"newuser"}, ex.getArgs());
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void updateProfile_PhoneUsedByAnotherUser_ThrowsConflictAndKeepsOldPhone() {
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+            user.setPhoneNumber("+380501112233");
+
+            UserUpdateRequestDTO request = new UserUpdateRequestDTO();
+            request.setPhoneNumber("+380509998877");
+
+            when(userRepository.findById(id)).thenReturn(Optional.of(user));
+            when(userRepository.existsByPhoneNumber("+380509998877")).thenReturn(true);
+
+            ConflictException ex = assertThrows(ConflictException.class, () -> userService.updateProfile(id, request));
+
+            assertEquals("err.user.phoneExists", ex.getKey());
+            assertArrayEquals(new Object[]{"+380509998877"}, ex.getArgs());
+            assertEquals("+380501112233", user.getPhoneNumber());
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void updateProfile_SamePhoneAsCurrent_DoesNotCheckUniquenessAndSaves() {
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+            user.setPhoneNumber("+380501112233");
+
+            UserUpdateRequestDTO request = new UserUpdateRequestDTO();
+            request.setPhoneNumber("+380501112233");
+
+            when(userRepository.findById(id)).thenReturn(Optional.of(user));
+            when(userMapper.toUserResponseDTO(user)).thenReturn(new UserResponseDTO());
+
+            userService.updateProfile(id, request);
+
+            verify(userRepository, never()).existsByPhoneNumber(any());
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void updateProfile_NoPhoneAndNoPassword_SavesWithoutChanges() {
+            UUID id = UUID.randomUUID();
+            User user = new User();
+            user.setId(id);
+            user.setPhoneNumber("+380501112233");
+            user.setPassword("oldHash");
+
+            when(userRepository.findById(id)).thenReturn(Optional.of(user));
+            when(userMapper.toUserResponseDTO(user)).thenReturn(new UserResponseDTO());
+
+            userService.updateProfile(id, new UserUpdateRequestDTO());
+
+            assertEquals("+380501112233", user.getPhoneNumber());
+            assertEquals("oldHash", user.getPassword());
+            verifyNoInteractions(passwordEncoder);
+        }
+    }
+
+    @Nested
     class FindAllTest {
 
         @Test

@@ -106,6 +106,41 @@ public class PageController {
         }
     }
 
+
+    @GetMapping("/register")
+    public String showRegisterForm(Model model){
+        model.addAttribute("registerForm", new RegisterRequestDTO());
+        return "auth/register";
+    }
+    @PostMapping("/register")
+    public String register(@Valid @ModelAttribute("registerForm") RegisterRequestDTO form,
+                         BindingResult result,
+                         RedirectAttributes redirect) {
+        if (result.hasErrors()){
+            return "auth/register";
+        }
+
+        try {
+            UserDTO userDTO = new UserDTO();
+
+            userDTO.setUsername(form.getUsername());
+            userDTO.setPassword(form.getPassword());
+            userDTO.setRole(Role.USER.toString());
+            userDTO.setPhoneNumber(form.getPhoneNumber());
+            userDTO.setBalance(0.0);
+            userDTO.setActive(true);
+
+            userService.register(userDTO);
+
+            redirect.addFlashAttribute("message", msg("msg.registered"));
+            return "redirect:/login";
+        } catch (ConflictException e) {
+            String field = "err.user.phoneExists".equals(e.getKey()) ? "phoneNumber" : "username";
+            result.rejectValue(field, e.getKey(), e.getArgs(),e.getMessage());
+            return "auth/register";
+        }
+    }
+
     @PostMapping("/logout")
     public String logout(HttpServletResponse response) {
 
@@ -321,17 +356,24 @@ public class PageController {
     public String updateProfile(@Valid @ModelAttribute("profileForm") UserUpdateRequestDTO form,
                                 BindingResult result, @AuthenticationPrincipal CustomUserDetails principal,
                                 RedirectAttributes redirect, Model model) {
-
         if (result.hasErrors()) {
             model.addAttribute("profile", userService.getProfile(principal.getUser().getId()));
             model.addAttribute("vouchers", voucherService.findAllByUserId(principal.getUser().getId().toString()));
             return "profile";
         }
 
-        userService.updateProfile(principal.getUser().getId(), form);
-        redirect.addFlashAttribute("message", msg("msg.profile.updated"));
-        return "redirect:/profile";
+        try {
+            userService.updateProfile(principal.getUser().getId(), form);
+            redirect.addFlashAttribute("message", msg("msg.profile.updated"));
+            return "redirect:/profile";
+        } catch (ConflictException e) {
+            result.rejectValue("phoneNumber", e.getKey(), e.getArgs(), e.getMessage());
+            model.addAttribute("profile", userService.getProfile(principal.getUser().getId()));
+            model.addAttribute("vouchers", voucherService.findAllByUserId(principal.getUser().getId().toString()));
+            return "profile";
+        }
     }
+
 
     private String msg(String key) {
         return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
