@@ -333,6 +333,76 @@ class PageControllerTest {
     }
 
     @Nested
+    class CancelTest {
+
+        @Test
+        void cancel_AsUser_CancelsForCurrentUserAndRedirectsToProfile() throws Exception {
+            UUID voucherId = UUID.randomUUID();
+
+            mockMvc.perform(post("/vouchers/{id}/cancel", voucherId).with(asUser()))
+                    .andExpect(redirectedUrl("/profile"))
+                    .andExpect(flash().attribute("message", "Voucher canceled, the money is back on your balance."));
+
+            verify(voucherOrderService).cancelByUser(voucherId, USER_ID);
+        }
+
+        @Test
+        void cancel_UkrainianLocale_FlashMessageIsTranslated() throws Exception {
+            mockMvc.perform(post("/vouchers/{id}/cancel", UUID.randomUUID()).with(asUser())
+                            .cookie(new Cookie("lang", "uk")))
+                    .andExpect(flash().attribute("message", "Путівку скасовано, кошти повернуто на баланс."));
+        }
+
+        @Test
+        void cancel_PaidVoucher_FlashesLocalizedConflict() throws Exception {
+            UUID voucherId = UUID.randomUUID();
+            doThrow(new ConflictException("Only REGISTERED voucher can change its status", "err.status.onlyRegistered"))
+                    .when(voucherOrderService).cancelByUser(voucherId, USER_ID);
+
+            mockMvc.perform(post("/vouchers/{id}/cancel", voucherId).with(asUser()))
+                    .andExpect(redirectedUrl("/profile"))
+                    .andExpect(flash().attribute("error", "Only REGISTERED voucher can change its status"));
+        }
+
+        @Test
+        void cancel_ForeignVoucher_ShowsForbiddenPage() throws Exception {
+            UUID voucherId = UUID.randomUUID();
+            doThrow(new org.springframework.security.access.AccessDeniedException("Not your order"))
+                    .when(voucherOrderService).cancelByUser(voucherId, USER_ID);
+
+            mockMvc.perform(post("/vouchers/{id}/cancel", voucherId).with(asUser()))
+                    .andExpect(status().isForbidden())
+                    .andExpect(view().name("error"))
+                    .andExpect(model().attribute("message", "Access denied"));
+        }
+
+        @Test
+        void cancel_AsManager_IsForbidden() throws Exception {
+            mockMvc.perform(post("/vouchers/{id}/cancel", UUID.randomUUID()).with(asManager()))
+                    .andExpect(status().isForbidden());
+
+            verifyNoInteractions(voucherOrderService);
+        }
+
+        @Test
+        void profile_ShowsCancelButtonOnlyForRegisteredVouchers() throws Exception {
+            VoucherDTO registered = voucher(USER_ID);
+            registered.setStatus("REGISTERED");
+            registered.setTitle("Cancelable tour");
+            VoucherDTO paid = voucher(USER_ID);
+            paid.setStatus("PAID");
+            paid.setTitle("Paid tour");
+            when(userService.getProfile(USER_ID)).thenReturn(profileDto());
+            when(voucherService.findAllByUserId(USER_ID.toString())).thenReturn(List.of(registered, paid));
+
+            String html = mockMvc.perform(get("/profile").with(asUser()))
+                    .andReturn().getResponse().getContentAsString();
+
+            assertEquals(1, html.split("/cancel", -1).length - 1);
+        }
+    }
+
+    @Nested
     class ProfileTest {
 
         @Test

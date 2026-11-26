@@ -11,6 +11,7 @@ import com.epam.finaltask.model.VoucherStatus;
 import com.epam.finaltask.repository.UserRepository;
 import com.epam.finaltask.repository.VoucherRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,5 +112,17 @@ public class VoucherOrderServiceImpl implements VoucherOrderService {
 
         return voucherMapper.toVoucherDTO(voucher);
 
+    }
+
+    @Override
+    @Transactional
+    public VoucherDTO cancelByUser(UUID id, UUID userId) {
+        Voucher voucher = voucherById(id);
+
+        if (voucher.getUser() == null || !voucher.getUser().getId().equals(userId)){
+            log.warn("User {} tried to cancel foreign order {}", userId, id);
+            throw new AccessDeniedException("Not your order");
+        }
+        return changeStatus(id, VoucherStatus.CANCELED);
     }
 }

@@ -9,4 +9,6 @@ public interface VoucherOrderService {
     VoucherDTO order(UUID id, UUID userId);
 
     VoucherDTO changeStatus(UUID id, VoucherStatus status);
+
+    VoucherDTO cancelByUser(UUID id, UUID userId);
 }

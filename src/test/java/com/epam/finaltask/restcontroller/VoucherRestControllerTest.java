@@ -588,6 +588,71 @@ public class VoucherRestControllerTest {
     }
 
     @Test
+    void cancel_AsUser_CancelsInsteadOfOrdering() throws Exception {
+        UUID voucherId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        when(voucherOrderService.cancelByUser(voucherId, userId)).thenReturn(new VoucherDTO());
+
+        mockMvc.perform(post("/api/vouchers/{id}/cancel", voucherId)
+                        .with(user(customUser(userId, Role.USER))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusCode").value("OK"))
+                .andExpect(jsonPath("$.statusMessage").value("Voucher is successfully cancelled"));
+
+        verify(voucherOrderService).cancelByUser(voucherId, userId);
+        verify(voucherOrderService, never()).order(any(), any());
+    }
+
+    @Test
+    void cancel_AsManager_Returns403() throws Exception {
+        mockMvc.perform(post("/api/vouchers/{id}/cancel", UUID.randomUUID())
+                        .with(user(customUser(UUID.randomUUID(), Role.MANAGER))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.statusCode").value("FORBIDDEN"));
+
+        verifyNoInteractions(voucherOrderService);
+    }
+
+    @Test
+    void cancel_Anonymous_Returns401() throws Exception {
+        mockMvc.perform(post("/api/vouchers/{id}/cancel", UUID.randomUUID()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.statusCode").value("UNAUTHORIZED"));
+
+        verifyNoInteractions(voucherOrderService);
+    }
+
+    @Test
+    void cancel_ForeignVoucher_Returns403() throws Exception {
+        UUID voucherId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        when(voucherOrderService.cancelByUser(voucherId, userId))
+                .thenThrow(new org.springframework.security.access.AccessDeniedException("Not your order"));
+
+        mockMvc.perform(post("/api/vouchers/{id}/cancel", voucherId)
+                        .with(user(customUser(userId, Role.USER))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.statusCode").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.statusMessage").value("Access denied"));
+    }
+
+    @Test
+    void cancel_PaidVoucher_Returns409() throws Exception {
+        UUID voucherId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        when(voucherOrderService.cancelByUser(voucherId, userId))
+                .thenThrow(new ConflictException("Only REGISTERED voucher can change its status"));
+
+        mockMvc.perform(post("/api/vouchers/{id}/cancel", voucherId)
+                        .with(user(customUser(userId, Role.USER))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.statusCode").value("CONFLICT"));
+    }
+
+    @Test
     void findAllByUserIdAndStatus_AsOwner_Returns200() throws Exception {
         UUID ownerId = UUID.randomUUID();
 

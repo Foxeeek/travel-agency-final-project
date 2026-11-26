@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -377,4 +378,116 @@ public class VoucherOrderServiceImplTest {
 
     }
 
+    @Nested
+    class CancelByUserTest {
+
+        private Voucher ownedVoucher(UUID voucherId, User owner, VoucherStatus status) {
+            Voucher voucher = buildVoucher();
+            voucher.setId(voucherId);
+            voucher.setStatus(status);
+            voucher.setUser(owner);
+            return voucher;
+        }
+
+        private User owner(UUID id, double balance) {
+            User user = new User();
+            user.setId(id);
+            user.setUsername("owner");
+            user.setBalance(BigDecimal.valueOf(balance));
+            return user;
+        }
+
+        @Test
+        void cancelByUser_OwnRegisteredVoucher_RefundsPriceAndSetsCanceled() {
+            UUID voucherId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+            User owner = owner(userId, 100.0);
+            Voucher voucher = ownedVoucher(voucherId, owner, VoucherStatus.REGISTERED);
+            VoucherDTO dto = new VoucherDTO();
+
+            when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
+            when(voucherMapper.toVoucherDTO(voucher)).thenReturn(dto);
+
+            VoucherDTO result = voucherOrderService.cancelByUser(voucherId, userId);
+
+            Assertions.assertSame(dto, result);
+            Assertions.assertEquals(VoucherStatus.CANCELED, voucher.getStatus());
+            Assertions.assertEquals(0, BigDecimal.valueOf(950.0).compareTo(owner.getBalance()));
+            verify(userRepository).save(owner);
+            verify(voucherRepository).save(voucher);
+        }
+
+        @Test
+        void cancelByUser_ForeignVoucher_ThrowsAccessDeniedAndChangesNothing() {
+            UUID voucherId = UUID.randomUUID();
+            User owner = owner(UUID.randomUUID(), 100.0);
+            Voucher voucher = ownedVoucher(voucherId, owner, VoucherStatus.REGISTERED);
+
+            when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
+
+            assertThrows(AccessDeniedException.class,
+                    () -> voucherOrderService.cancelByUser(voucherId, UUID.randomUUID()));
+
+            Assertions.assertEquals(VoucherStatus.REGISTERED, voucher.getStatus());
+            Assertions.assertEquals(0, BigDecimal.valueOf(100.0).compareTo(owner.getBalance()));
+            verify(userRepository, never()).save(any());
+            verify(voucherRepository, never()).save(any());
+        }
+
+        @Test
+        void cancelByUser_VoucherWithoutOwner_ThrowsAccessDenied() {
+            UUID voucherId = UUID.randomUUID();
+            Voucher voucher = ownedVoucher(voucherId, null, VoucherStatus.REGISTERED);
+
+            when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
+
+            assertThrows(AccessDeniedException.class,
+                    () -> voucherOrderService.cancelByUser(voucherId, UUID.randomUUID()));
+
+            verify(voucherRepository, never()).save(any());
+        }
+
+        @Test
+        void cancelByUser_PaidVoucher_ThrowsConflictAndDoesNotRefund() {
+            UUID voucherId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+            User owner = owner(userId, 100.0);
+            Voucher voucher = ownedVoucher(voucherId, owner, VoucherStatus.PAID);
+
+            when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
+
+            ConflictException ex = assertThrows(ConflictException.class,
+                    () -> voucherOrderService.cancelByUser(voucherId, userId));
+
+            Assertions.assertEquals("err.status.onlyRegistered", ex.getKey());
+            Assertions.assertEquals(VoucherStatus.PAID, voucher.getStatus());
+            Assertions.assertEquals(0, BigDecimal.valueOf(100.0).compareTo(owner.getBalance()));
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void cancelByUser_AlreadyCanceledVoucher_ThrowsConflictAndDoesNotRefundTwice() {
+            UUID voucherId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+            User owner = owner(userId, 100.0);
+            Voucher voucher = ownedVoucher(voucherId, owner, VoucherStatus.CANCELED);
+
+            when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
+
+            assertThrows(ConflictException.class, () -> voucherOrderService.cancelByUser(voucherId, userId));
+
+            Assertions.assertEquals(0, BigDecimal.valueOf(100.0).compareTo(owner.getBalance()));
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void cancelByUser_VoucherNotFound_ThrowsNotFound() {
+            UUID voucherId = UUID.randomUUID();
+
+            when(voucherRepository.findById(voucherId)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class,
+                    () -> voucherOrderService.cancelByUser(voucherId, UUID.randomUUID()));
+        }
+    }
 }

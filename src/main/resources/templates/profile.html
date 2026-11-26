@@ -14,6 +14,7 @@
 
     <h1 th:text="#{profile.title}"></h1>
 
+    <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
     <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
     <dl class="row">
 
@@ -50,6 +51,7 @@
             <th th:text="#{profile.col.price}"></th>
             <th th:text="#{profile.col.from}"></th>
             <th th:text="#{profile.col.to}"></th>
+            <th th:text="#{profile.col.action}"></th>
         </tr>
         </thead>
 
@@ -57,14 +59,23 @@
 
         <tr th:each="v : ${vouchers}">
             <td th:text="${v.title}"></td>
-            <td th:text="#{|enum.VoucherStatus.${v.status}|}"></td>
+            <td  th:text="#{|enum.VoucherStatus.${v.status}|}"></td>
             <td th:text="${v.price}"></td>
             <td th:text="${v.arrivalDate}"></td>
             <td th:text="${v.evictionDate}"></td>
+            <td>
+                <form th:if="${v.status == 'REGISTERED'}"
+                      th:action="@{/vouchers/{id}/cancel(id=${v.id})}"
+                      method="post"
+                      class="d-inline"
+                      th:onsubmit="|return confirm('#{profile.confirm.cancel}')|">
+                    <button class="btn btn-sm btn-outline-danger" th:text="#{profile.cancel}"></button>
+                </form>
+            </td>
         </tr>
 
         <tr th:if="${#lists.isEmpty(vouchers)}">
-            <td colspan="5" th:text="#{profile.empty}"></td>
+            <td colspan="6" th:text="#{profile.empty}"></td>
         </tr>
 
         </tbody>

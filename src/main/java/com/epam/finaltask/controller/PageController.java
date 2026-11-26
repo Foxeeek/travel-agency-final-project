@@ -172,6 +172,19 @@ public class PageController {
         return "redirect:/vouchers";
     }
 
+    @PostMapping("/vouchers/{id}/cancel")
+    @PreAuthorize("hasRole('USER')")
+    public String cancelOrder(@PathVariable UUID id, @AuthenticationPrincipal CustomUserDetails principal, RedirectAttributes redirect){
+        try {
+            voucherOrderService.cancelByUser(id, principal.getUser().getId());
+            redirect.addFlashAttribute("message", msg("msg.canceled"));
+        } catch (ConflictException | NotFoundException e) {
+            redirect.addFlashAttribute("error", exceptionMsg(e));
+        }
+
+        return "redirect:/profile";
+    }
+
     @GetMapping("/profile")
     public String profile(@AuthenticationPrincipal CustomUserDetails principal,
                           Model model) {

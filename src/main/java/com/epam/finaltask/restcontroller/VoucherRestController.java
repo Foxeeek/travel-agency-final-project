@@ -107,6 +107,14 @@ public class VoucherRestController {
         return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher is successfully ordered", voucher));
     }
 
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<VoucherDTO>> cancelOrder(@PathVariable UUID id, @AuthenticationPrincipal CustomUserDetails principal) {
+        VoucherDTO voucher = voucherOrderService.cancelByUser(id, principal.getUser().getId());
+        return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher is successfully cancelled", voucher));
+    }
+
+
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<PageResponseDTO<VoucherDTO>>> search(@Valid @ModelAttribute VoucherFilterDTO filter, Pageable pageable) {
         PageResponseDTO<VoucherDTO> page = voucherService.search(filter, pageable);
