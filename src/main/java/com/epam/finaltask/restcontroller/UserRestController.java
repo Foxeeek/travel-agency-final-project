@@ -4,6 +4,7 @@ import com.epam.finaltask.auth.CustomUserDetails;
 import com.epam.finaltask.dto.*;
 import com.epam.finaltask.service.UserService;
 import com.epam.finaltask.service.VoucherService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
+@Tag(name = "User")
 public class UserRestController {
     private final UserService userService;
     private final VoucherService voucherService;

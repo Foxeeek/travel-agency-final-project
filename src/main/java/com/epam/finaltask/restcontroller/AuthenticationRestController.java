@@ -8,6 +8,7 @@ import com.epam.finaltask.model.Role;
 import com.epam.finaltask.service.UserService;
 import com.epam.finaltask.token.JwtAuthenticationFilter;
 import com.epam.finaltask.token.JwtService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Auth")
 public class AuthenticationRestController {
 
     private final UserService userService;

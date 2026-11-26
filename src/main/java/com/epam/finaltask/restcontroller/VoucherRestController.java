@@ -5,6 +5,7 @@ import com.epam.finaltask.dto.*;
 import com.epam.finaltask.model.VoucherStatus;
 import com.epam.finaltask.service.VoucherOrderService;
 import com.epam.finaltask.service.VoucherService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,6 +22,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/vouchers")
+@Tag(name = "Voucher")
 public class VoucherRestController {
     private final VoucherService voucherService;
     private final VoucherOrderService voucherOrderService;
